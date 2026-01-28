@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Salon Service Planner - Client</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <script>
+      // IMMEDIATE BRANDING & PREFERENCE RESTORATION
+      // This runs before React loads to ensure settings are correct instantly.
+      (function() {
+        try {
+          const primary = localStorage.getItem('admin_brand_primary');
+          const secondary = localStorage.getItem('admin_brand_secondary');
+          const accent = localStorage.getItem('admin_brand_accent');
+          const font = localStorage.getItem('admin_brand_font');
+          const textSize = localStorage.getItem('admin_text_size');
+
+          if (primary) document.documentElement.style.setProperty('--color-brand-primary', primary);
+          if (secondary) document.documentElement.style.setProperty('--color-brand-secondary', secondary);
+          if (accent) document.documentElement.style.setProperty('--color-brand-accent', accent);
+
+          const applyBodyPreferences = () => {
+            // This function is guaranteed to run only after document.body is available.
+            if (!document.body) return;
+
+            if (font && !['font-sans', 'font-serif', 'font-mono'].includes(font)) {
+              const link = document.createElement('link');
+              link.href = `https://fonts.googleapis.com/css2?family=${font.replace(/ /g, '+')}:wght@400;700;900&display=swap`;
+              link.rel = 'stylesheet';
+              document.head.appendChild(link);
+              document.body.style.fontFamily = `'${font}', sans-serif`;
+            } else if (font) {
+              document.body.classList.add(font);
+            }
+
+            if (textSize) {
+              document.body.classList.add(`text-size-${textSize.toLowerCase()}`);
+            }
+          };
+
+          // Using 'DOMContentLoaded' ensures this script only runs after the DOM is fully
+          // parsed, preventing any race conditions where `document.body` might be null.
+          // This is the correct and safe way to apply initial styles.
+          document.addEventListener('DOMContentLoaded', applyBodyPreferences, { once: true });
+
+        } catch (e) {
+          console.log('Error loading preferences', e);
+        }
+      })();
+    </script>
+
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.12.0",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.90.1",
+    "path": "https://esm.sh/path@^0.12.7",
+    "vite": "https://esm.sh/vite@^7.3.1",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

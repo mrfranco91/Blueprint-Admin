@@ -1,0 +1,101 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Blueprint Brand Colors - Heritage Blue, Classic Blue, Sky Blue, Campanula */
+  --color-brand-primary: #0F4C81; /* Classic Blue */
+  --color-brand-secondary: #5D96BC; /* Heritage Blue */
+  --color-brand-accent: #8ABAD3; /* Sky Blue */
+  --color-brand-accent-dark: #0F4C81; /* Classic Blue for contrast on light backgrounds */
+  --color-brand-bg: #F8F9FA;
+
+  /* Accessible text colors for backgrounds */
+  --text-on-primary: #FFFFFF; /* White text on Classic Blue */
+  --text-on-secondary: #FFFFFF; /* White text on Heritage Blue */
+  --text-on-accent: #0F4C81; /* Dark text on Sky Blue */
+  --text-on-light: #1F2937; /* Dark gray for body text */
+  --text-muted: #374151; /* Medium gray for secondary text */
+}
+
+/* Tailwind Overrides for Dynamic Text Size */
+/* Small Size Setting */
+.text-size-s .text-xs { font-size: 0.6875rem; } /* ~11px */
+.text-size-s .text-sm { font-size: 0.75rem; } /* was text-xs */
+.text-size-s .text-base { font-size: 0.875rem; } /* was text-sm */
+.text-size-s .text-lg { font-size: 1rem; } /* was text-base */
+.text-size-s .text-xl { font-size: 1.125rem; } /* was text-lg */
+.text-size-s .text-2xl { font-size: 1.25rem; } /* was text-xl */
+.text-size-s .text-3xl { font-size: 1.5rem; } /* was text-2xl */
+.text-size-s .text-4xl { font-size: 1.875rem; } /* was text-3xl */
+.text-size-s .text-5xl { font-size: 2.25rem; } /* was text-4xl */
+
+/* Medium Size is Tailwind's default, no overrides needed. */
+
+/* Large Size Setting */
+.text-size-l .text-xs { font-size: 0.875rem; } /* was text-sm */
+.text-size-l .text-sm { font-size: 1rem; } /* was text-base */
+.text-size-l .text-base { font-size: 1.125rem; } /* was text-lg */
+.text-size-l .text-lg { font-size: 1.25rem; } /* was text-xl */
+.text-size-l .text-xl { font-size: 1.5rem; } /* was text-2xl */
+.text-size-l .text-2xl { font-size: 1.875rem; } /* was text-3xl */
+.text-size-l .text-3xl { font-size: 2.25rem; } /* was text-4xl */
+.text-size-l .text-4xl { font-size: 3rem; } /* was text-5xl */
+.text-size-l .text-5xl { font-size: 3.75rem; } /* was text-6xl */
+
+/* LoginScreen responsive logo */
+.login-logo {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+}
+
+@media (max-width: 991px) {
+  .login-logo {
+    width: 100%;
+    height: auto;
+  }
+}
+
+/* Blueprint Button Styles */
+.blueprint-button {
+  border: 2px solid #0F4C81;
+  color: #0F4C81;
+  background-color: #ffffff;
+  font-weight: bold;
+  padding: 12px;
+  border-radius: 8px;
+  width: 100%;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.blueprint-button:hover:not(:disabled) {
+  background-color: #0F4C81;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(15, 76, 129, 0.3);
+  transform: translateY(-2px);
+}
+
+.blueprint-button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.blueprint-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Submit Button Styles */
+.sync-button {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.sync-button:hover:not(:disabled) {
+  background-color: rgba(11, 52, 88, 0.9);
+}
+
+.sync-button:active:not(:disabled) {
+  background-color: rgba(11, 52, 88, 0.8);
+}
