@@ -40,11 +40,10 @@ export default function AdminDashboard({ role }: { role: UserRole }) {
   const {
     branding, updateBranding,
     membershipConfig, updateMembershipConfig,
-    levels,
+    levels, updateLevels,
     stylists, updateStylists,
-    clients, updateClients,
-    services, updateServices,
-    saveAll, resolveClientByExternalId
+    clients,
+    saveAll
   } = useSettings();
   const { plans, getStats } = usePlans();
   const { user, logout } = useAuth();
