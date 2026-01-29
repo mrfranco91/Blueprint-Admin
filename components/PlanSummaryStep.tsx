@@ -442,18 +442,15 @@ const PlanSummaryStep: React.FC<PlanSummaryStepProps> = ({ plan, role, onEditPla
               }
           }
 
-          if (user?.role === 'stylist' && user.stylistData) {
-              const loggedInStylist = allStylists.find(s => s.id === user.stylistData!.id);
-              if (loggedInStylist) {
-                  const isBookingForSelf = stylistIdToBookFor === loggedInStylist.id;
+          if (user?.role === 'stylist' && loggedInStylist) {
+              const isBookingForSelf = stylistIdToBookFor === loggedInStylist.id;
 
-                  if (isBookingForSelf && !loggedInStylist.permissions.can_book_own_schedule) {
-                      throw new Error("You do not have permission to book appointments for your own schedule.");
-                  }
+              if (isBookingForSelf && !loggedInStylist.permissions.can_book_own_schedule) {
+                  throw new Error("You do not have permission to book appointments for your own schedule.");
+              }
 
-                  if (!isBookingForSelf && !loggedInStylist.permissions.can_book_peer_schedules) {
-                      throw new Error("You do not have permission to book appointments for other team members.");
-                  }
+              if (!isBookingForSelf && !loggedInStylist.permissions.can_book_peer_schedules) {
+                  throw new Error("You do not have permission to book appointments for other team members.");
               }
           }
 
