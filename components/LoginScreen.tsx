@@ -123,6 +123,31 @@ const LoginScreen: React.FC = () => {
     }
   };
 
+  const handleStylistLogin = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!stylistEmail.trim() || !stylistPassword.trim()) {
+      setStylistError('Enter your email and password.');
+      return;
+    }
+
+    setStylistLoading(true);
+    setStylistError(null);
+
+    const { supabase } = await import('../lib/supabase');
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: stylistEmail.trim(),
+      password: stylistPassword,
+    });
+
+    if (signInError) {
+      setStylistError(signInError.message);
+      setStylistLoading(false);
+      return;
+    }
+
+    setStylistLoading(false);
+  };
+
   const safeAccentColor = ensureAccessibleColor(branding.accentColor, '#FFFFFF', '#0F4C81');
 
   const headerStyle = {
