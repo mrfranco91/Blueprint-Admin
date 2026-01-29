@@ -124,7 +124,7 @@ export default async function handler(req: any, res: any) {
         client_secret: appSecret,
         grant_type: 'authorization_code',
         code,
-        redirect_uri: redirectUri,
+        redirect_uri: resolvedRedirectUri,
       }),
     });
 
