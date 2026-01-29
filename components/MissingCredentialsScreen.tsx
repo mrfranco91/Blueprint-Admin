@@ -8,6 +8,17 @@ const MissingCredentialsScreen = () => {
   const [token, setToken] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [oauthDebug, setOauthDebug] = useState<null | {
+    ok: boolean;
+    resolvedRedirectUri?: string;
+    requestOrigin?: string;
+    authorizeBase?: string;
+    squareEnv?: string;
+    oauthScopes?: string;
+    hasAppId?: boolean;
+    hasRedirectUri?: boolean;
+  }>(null);
+  const [oauthDebugError, setOauthDebugError] = useState<string | null>(null);
 
   const squareAppId =
     (import.meta as any).env.VITE_SQUARE_APPLICATION_ID ||
