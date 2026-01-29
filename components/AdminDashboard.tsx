@@ -73,35 +73,6 @@ export default function AdminDashboard({ role }: { role: UserRole }) {
     });
   }, [plans]);
 
-  const handleSync = async () => {
-    if (!supabase || !user) return;
-    setIsSyncing(true);
-    setSyncMessage("Initializing sync...");
-    try {
-      const [newServices, newStylists, newCustomers] = await Promise.all([
-        SquareIntegrationService.fetchCatalog(),
-        SquareIntegrationService.fetchTeam(),
-        SquareIntegrationService.fetchCustomers(),
-      ]);
-
-      if (newStylists.length) updateStylists(newStylists);
-      if (newServices.length) updateServices(newServices);
-      if (newCustomers.length) {
-        const resolved = [];
-        for(const sq of newCustomers) {
-          if (sq.id) resolved.push(await resolveClientByExternalId(sq.id, { name: sq.name!, email: sq.email, phone: sq.phone, avatarUrl: sq.avatarUrl }));
-        }
-        updateClients(resolved);
-      }
-      setSyncMessage("Sync Successful!");
-      saveAll();
-      setTimeout(() => setSyncMessage(null), 2000);
-    } catch (e: any) {
-      setSyncMessage(`Error: ${e.message}`);
-    } finally {
-      setIsSyncing(false);
-    }
-  };
 
   const fallbackPermissions = levels[0]?.defaultPermissions || {
     canBookAppointments: true,
