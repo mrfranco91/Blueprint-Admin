@@ -326,28 +326,94 @@ export default function AdminDashboard({ role }: { role: UserRole }) {
 
   const renderTeam = () => {
     if (editingStylist) {
+      const levelDefaults = resolveLevelDefaults(editingStylist.levelId || levels[0]?.id || 'lvl_1');
+      const effectivePermissions = { ...levelDefaults, ...(editingStylist.permissionOverrides || {}) };
+      const permissionKeys = Object.keys(levelDefaults) as (keyof typeof levelDefaults)[];
+
       return (
         <div className="p-6 bg-gradient-to-b from-gray-50 to-white min-h-screen">
           <button onClick={() => setEditingStylist(null)} className="mb-6 flex items-center text-xs font-black uppercase text-gray-500 hover:text-gray-900 transition-colors"><ChevronLeftIcon className="w-4 h-4 mr-1"/> Back</button>
-          <h2 className="text-4xl font-black mb-8 text-brand-accent">Editing {editingStylist.name}</h2>
+          <h2 className="text-4xl font-black mb-4 text-brand-accent">Editing {editingStylist.name}</h2>
+          <p className="text-xs font-bold text-gray-500 mb-6">Level defaults are applied first, then individual overrides.</p>
+          <div className="mb-6">
+            <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Stylist level</label>
+            <select
+              value={editingStylist.levelId}
+              onChange={(event) => {
+                const nextLevelId = event.target.value;
+                const nextDefaults = resolveLevelDefaults(nextLevelId);
+                const currentOverrides = editingStylist.permissionOverrides || {};
+                const nextOverrides = Object.keys(currentOverrides).reduce((acc, key) => {
+                  const typedKey = key as keyof typeof nextDefaults;
+                  const overrideValue = currentOverrides[typedKey];
+                  if (overrideValue === nextDefaults[typedKey]) {
+                    return acc;
+                  }
+                  return { ...acc, [typedKey]: overrideValue };
+                }, {} as Partial<typeof nextDefaults>);
+                const nextPermissions = { ...nextDefaults, ...nextOverrides };
+                const nextStylist = {
+                  ...editingStylist,
+                  levelId: nextLevelId,
+                  permissions: nextPermissions,
+                  permissionOverrides: nextOverrides,
+                };
+                setEditingStylist(nextStylist);
+                updateStylists(stylists.map(s => s.id === editingStylist.id ? nextStylist : s));
+              }}
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl font-bold text-sm focus:outline-none focus:border-gray-950"
+            >
+              {levels.map((level) => (
+                <option key={level.id} value={level.id}>{level.name}</option>
+              ))}
+            </select>
+          </div>
           <div className="space-y-4">
-            {Object.keys(editingStylist.permissions).map((permKey) => (
+            {permissionKeys.map((permKey) => (
               <div key={permKey} className="flex justify-between items-center p-4 bg-white border-4 border-gray-100 rounded-2xl">
-                <span className="font-black text-sm capitalize">{permKey.replace(/_/g, ' ')}</span>
-                <button 
+                <div>
+                  <span className="font-black text-sm capitalize">{String(permKey).replace(/_/g, ' ')}</span>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    Default: {levelDefaults[permKey] ? 'On' : 'Off'}
+                  </p>
+                </div>
+                <button
                   onClick={() => {
-                    const newStylist = { ...editingStylist, permissions: { ...editingStylist.permissions, [permKey]: !editingStylist.permissions[permKey as keyof Stylist['permissions']] } };
-                    setEditingStylist(newStylist);
-                    updateStylists(stylists.map(s => s.id === editingStylist.id ? newStylist : s));
+                    const nextValue = !effectivePermissions[permKey];
+                    const nextOverrides = { ...(editingStylist.permissionOverrides || {}) };
+                    if (nextValue === levelDefaults[permKey]) {
+                      delete nextOverrides[permKey];
+                    } else {
+                      nextOverrides[permKey] = nextValue;
+                    }
+                    const nextPermissions = { ...levelDefaults, ...nextOverrides };
+                    const nextStylist = {
+                      ...editingStylist,
+                      permissions: nextPermissions,
+                      permissionOverrides: nextOverrides,
+                    };
+                    setEditingStylist(nextStylist);
+                    updateStylists(stylists.map(s => s.id === editingStylist.id ? nextStylist : s));
                   }}
-                  className={`w-12 h-6 rounded-full relative transition-colors ${editingStylist.permissions[permKey as keyof Stylist['permissions']] ? 'bg-brand-secondary' : 'bg-gray-200'}`}
+                  className={`w-12 h-6 rounded-full relative transition-colors ${effectivePermissions[permKey] ? 'bg-brand-secondary' : 'bg-gray-200'}`}
                 >
-                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${editingStylist.permissions[permKey as keyof Stylist['permissions']] ? 'transform translate-x-7' : 'transform translate-x-1'}`}></div>
+                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${effectivePermissions[permKey] ? 'transform translate-x-7' : 'transform translate-x-1'}`}></div>
                 </button>
               </div>
             ))}
           </div>
-          <button onClick={() => { saveAll(); setEditingStylist(null); }} className="w-full py-4 bg-gray-950 text-white font-black rounded-2xl mt-8">SAVE PERMISSIONS</button>
+          {stylistSaveError && (
+            <div className="mt-4 rounded-2xl bg-red-50 border border-red-100 px-4 py-3 text-xs font-semibold text-red-700">
+              {stylistSaveError}
+            </div>
+          )}
+          <button
+            onClick={() => persistStylistUpdates(editingStylist)}
+            disabled={stylistSaveLoading}
+            className="w-full py-4 bg-gray-950 text-white font-black rounded-2xl mt-8 disabled:opacity-60"
+          >
+            {stylistSaveLoading ? 'Saving...' : 'Save permissions'}
+          </button>
         </div>
       );
     }
