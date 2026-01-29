@@ -721,14 +721,14 @@ const PlanSummaryStep: React.FC<PlanSummaryStepProps> = ({ plan, role, onEditPla
                                 </div>
                             </div>
 
-                            <button 
+                            <button
                                 onClick={handleSendInvite}
-                                disabled={isSendingInvite}
+                                disabled={isSendingInvite || isContactRestricted}
                                 className="w-full font-black py-5 rounded-2xl shadow-xl flex items-center justify-center space-x-3 active:scale-95 transition-all border-b-8 border-black/20 disabled:opacity-50"
                                 style={{ backgroundColor: branding.primaryColor, color: ensureAccessibleColor('#FFFFFF', branding.primaryColor, '#FFFFFF') }}
                             >
                                 {isSendingInvite ? <RefreshIcon className="w-6 h-6 animate-spin" /> : <ShareIcon className="w-6 h-6" />}
-                                <span>{isSendingInvite ? 'OPENING...' : `OPEN ${deliveryMethod.toUpperCase()}`}</span>
+                                <span>{isSendingInvite ? 'OPENING...' : isContactRestricted ? 'CONTACT ACCESS REQUIRED' : `OPEN ${deliveryMethod.toUpperCase()}`}</span>
                             </button>
                             
                             <button onClick={() => setMembershipModalOpen(false)} className="w-full text-center text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-gray-950 transition-colors">Cancel</button>
