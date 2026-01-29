@@ -22,12 +22,11 @@ import { canCustomizeBranding } from '../utils/isEnterpriseAccount';
 
 export default function AdminDashboard({ role }: { role: UserRole }) {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
-  const [activeSettingsView, setActiveSettingsView] = useState<'menu' | 'branding' | 'memberships' | 'integrations'>('menu');
+  const [activeSettingsView, setActiveSettingsView] = useState<'menu' | 'branding' | 'account' | 'team' | 'memberships'>('menu');
   const [editingStylist, setEditingStylist] = useState<Stylist | null>(null);
   const [editingPlan, setEditingPlan] = useState<GeneratedPlan | null>(null);
   const [isCreatingPlan, setIsCreatingPlan] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [perkDrafts, setPerkDrafts] = useState<Record<string, string>>({});
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [inviteName, setInviteName] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
