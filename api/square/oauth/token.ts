@@ -72,19 +72,39 @@ export default async function handler(req: any, res: any) {
     const appSecret = process.env.SQUARE_APPLICATION_SECRET;
     const redirectUri = process.env.VITE_SQUARE_REDIRECT_URI;
 
+    const forwardedProto = req.headers['x-forwarded-proto'];
+    const forwardedHost = req.headers['x-forwarded-host'] || req.headers['host'];
+    const resolvedProto = Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto;
+    const resolvedHost = Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost;
+    const requestOrigin = resolvedHost
+      ? `${resolvedProto || (req.secure ? 'https' : 'http')}://${resolvedHost}`
+      : null;
+    const requestRedirectUri = requestOrigin ? `${requestOrigin}/square/callback` : null;
+
+    const resolvedRedirectUri = (() => {
+      if (redirectUri && requestRedirectUri && redirectUri !== requestRedirectUri) {
+        console.warn('[OAUTH TOKEN] Redirect URI mismatch, using request origin:', {
+          envRedirect: redirectUri,
+          requestRedirect: requestRedirectUri,
+        });
+        return requestRedirectUri;
+      }
+      return redirectUri || requestRedirectUri;
+    })();
+
     console.log('[OAUTH TOKEN] Config check:', {
       env,
       hasAppId: !!appId,
       hasAppSecret: !!appSecret,
-      hasRedirectUri: !!redirectUri,
-      redirectUri: redirectUri,
+      hasRedirectUri: !!resolvedRedirectUri,
+      redirectUri: resolvedRedirectUri,
     });
 
-    if (!appId || !appSecret || !redirectUri) {
+    if (!appId || !appSecret || !resolvedRedirectUri) {
       console.error('[OAUTH TOKEN] Missing Square config', {
         appId,
         appSecret: appSecret ? '***' : 'MISSING',
-        redirectUri,
+        redirectUri: resolvedRedirectUri,
       });
       return res.status(500).json({ message: 'Square OAuth credentials not configured on server.' });
     }
