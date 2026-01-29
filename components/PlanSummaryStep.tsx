@@ -71,11 +71,13 @@ const PlanSummaryStep: React.FC<PlanSummaryStepProps> = ({ plan, role, onEditPla
   const canViewClientContact = user?.role === 'admin' || isClient || !!loggedInStylist?.permissions.viewClientContact;
   const isContactRestricted = !isClient && user?.role === 'stylist' && !canViewClientContact;
 
+  const projectedMonthlySpend = useMemo(() => plan.totalCost / 12, [plan.totalCost]);
+
   const qualifyingTier = useMemo(() => {
       if (!membershipConfig?.tiers || membershipConfig.tiers.length === 0) return undefined;
       const sortedTiers = [...membershipConfig.tiers].sort((a, b) => b.minSpend - a.minSpend);
-      return sortedTiers.find(t => plan.averageMonthlySpend >= t.minSpend) || sortedTiers[sortedTiers.length - 1];
-  }, [plan.averageMonthlySpend, membershipConfig?.tiers]);
+      return sortedTiers.find(t => projectedMonthlySpend >= t.minSpend) || sortedTiers[sortedTiers.length - 1];
+  }, [projectedMonthlySpend, membershipConfig?.tiers]);
 
   const invitationMessage = useMemo(() => {
     if (!qualifyingTier || !plan.client.name) return '';
@@ -539,13 +541,13 @@ const PlanSummaryStep: React.FC<PlanSummaryStepProps> = ({ plan, role, onEditPla
             </span>
         </div>
 
-        {isClient && isMemberOffered && (
+        {membershipConfig.enabled && isClient && isMemberOffered && (
             <div className="mb-6 p-6 rounded-[32px] shadow-xl animate-fade-in border-4" style={{ borderColor: branding.primaryColor, backgroundColor: '#FFF' }}>
                 <h2 className="text-xl font-black tracking-tighter mb-4" style={{color: branding.primaryColor}}>Membership Invitation</h2>
                 <p className="text-sm font-bold text-gray-700 mb-4 leading-relaxed">
                     Your blueprint qualifies for a membership! Review the details to enjoy a more predictable and streamlined salon experience.
                 </p>
-                <button 
+                <button
                     onClick={() => setIsViewingMembershipDetails(true)}
                     className="w-full font-black py-4 rounded-2xl shadow-lg flex items-center justify-center space-x-3 active:scale-95 transition-all border-b-4 border-black/20"
                     style={buttonStyle}
@@ -555,7 +557,7 @@ const PlanSummaryStep: React.FC<PlanSummaryStepProps> = ({ plan, role, onEditPla
             </div>
         )}
 
-        {isClient && isMemberActive && (
+        {membershipConfig.enabled && isClient && isMemberActive && (
              <div className="mb-6 p-6 rounded-[32px] shadow-lg animate-fade-in border-4 border-green-500 bg-green-50 text-center">
                 <CheckCircleIcon className="w-10 h-10 text-green-600 mx-auto mb-3" />
                 <h2 className="text-lg font-black tracking-tighter text-green-900">You’re enrolled! This blueprint is now your active membership.</h2>
@@ -644,8 +646,8 @@ const PlanSummaryStep: React.FC<PlanSummaryStepProps> = ({ plan, role, onEditPla
                 </button>
             )}
             
-            {!isClient && (
-                <button 
+            {!isClient && membershipConfig.enabled && (
+                <button
                     onClick={() => setMembershipModalOpen(true)}
                     className={`w-full py-5 rounded-2xl font-black text-lg flex items-center justify-center space-x-3 shadow-xl active:scale-95 transition-all border-b-4 ${isMemberOffered || isMemberActive ? 'bg-green-600 text-white border-green-900' : 'border-black/20'}`}
                     style={!(isMemberOffered || isMemberActive) ? { backgroundColor: branding.primaryColor, color: ensureAccessibleColor('#FFFFFF', branding.primaryColor, '#FFFFFF') } : {}}
@@ -712,6 +714,20 @@ const PlanSummaryStep: React.FC<PlanSummaryStepProps> = ({ plan, role, onEditPla
                             )}
 
                             <div className="bg-gray-50 p-4 rounded-3xl border-2 border-gray-100">
+                                <p className="text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">Projected membership pricing</p>
+                                <div className="flex flex-col gap-3 text-gray-900">
+                                    <div>
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Projected yearly total</p>
+                                        <p className="text-lg font-black">{formatCurrency(plan.totalCost)}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Estimated monthly membership</p>
+                                        <p className="text-lg font-black">{formatCurrency(projectedMonthlySpend)}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-gray-50 p-4 rounded-3xl border-2 border-gray-100">
                                 <p className="text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">Message Preview</p>
                                 <div className="bg-white p-4 rounded-2xl border-2 border-gray-200 text-xs font-bold text-gray-800 leading-relaxed italic shadow-inner">
                                     "{invitationMessage}"
@@ -747,6 +763,20 @@ const PlanSummaryStep: React.FC<PlanSummaryStepProps> = ({ plan, role, onEditPla
                     <div className="mb-6 bg-gray-50 p-5 rounded-3xl border-2 border-gray-100 text-center">
                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Your Membership Level</p>
                         <p className="text-2xl font-black" style={{ color: qualifyingTier?.color || '#000' }}>{qualifyingTier?.name || 'Standard'}</p>
+                    </div>
+
+                    <div className="mb-6 bg-gray-50 p-5 rounded-3xl border-2 border-gray-100 text-center">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Projected membership pricing</p>
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Projected yearly total</p>
+                            <p className="text-xl font-black text-gray-950">{formatCurrency(plan.totalCost)}</p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Estimated monthly membership</p>
+                            <p className="text-xl font-black text-gray-950">{formatCurrency(projectedMonthlySpend)}</p>
+                          </div>
+                        </div>
                     </div>
 
                     <div className="mb-6">
