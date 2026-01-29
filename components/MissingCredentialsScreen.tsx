@@ -198,6 +198,35 @@ const MissingCredentialsScreen = () => {
             </div>
           )}
 
+          {(oauthDebug || oauthDebugError) && (
+            <div className="mb-6 rounded-2xl border-2 border-gray-200 bg-white/70 p-4 text-xs font-semibold text-gray-700">
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">OAuth Debug Info</p>
+              {oauthDebugError ? (
+                <p className="mt-2 text-red-600">{oauthDebugError}</p>
+              ) : (
+                <div className="mt-2 space-y-2">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Request Origin</p>
+                    <p className="break-all font-mono text-[11px] text-gray-800">{oauthDebug?.requestOrigin || 'Not resolved'}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Resolved Redirect</p>
+                    <p className="break-all font-mono text-[11px] text-gray-800">{oauthDebug?.resolvedRedirectUri || 'Not resolved'}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Square Environment</p>
+                    <p className="font-mono text-[11px] text-gray-800">{oauthDebug?.squareEnv || 'Unknown'}</p>
+                  </div>
+                  {oauthDebug?.ok === false && (
+                    <p className="text-[11px] font-bold text-red-600">
+                      Missing config: App ID {oauthDebug?.hasAppId ? 'OK' : 'Missing'}, Redirect URI {oauthDebug?.hasRedirectUri ? 'OK' : 'Missing'}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex items-center gap-3 mb-6">
             <div className="flex-1" style={{ height: '2px', backgroundColor: branding.primaryColor }}></div>
             <span className="text-xs font-semibold" style={{ color: '#374151' }}>or</span>
