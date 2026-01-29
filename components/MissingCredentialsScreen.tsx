@@ -31,6 +31,33 @@ const MissingCredentialsScreen = () => {
     ((import.meta as any).env.VITE_SQUARE_OAUTH_SCOPES as string | undefined) ??
     'MERCHANT_PROFILE_READ EMPLOYEES_READ ITEMS_READ CUSTOMERS_READ CUSTOMERS_WRITE APPOINTMENTS_READ APPOINTMENTS_ALL_READ APPOINTMENTS_WRITE SUBSCRIPTIONS_READ SUBSCRIPTIONS_WRITE';
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadOauthDebug = async () => {
+      try {
+        const res = await fetch('/api/square/oauth/start?debug=1', { cache: 'no-store' });
+        if (!res.ok) {
+          throw new Error(`Debug request failed (${res.status})`);
+        }
+        const data = await res.json();
+        if (isMounted) {
+          setOauthDebug(data);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setOauthDebugError(err instanceof Error ? err.message : 'Unable to load OAuth debug info');
+        }
+      }
+    };
+
+    loadOauthDebug();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const startOAuth = () => {
     if (!squareAppId || !squareRedirectUri) {
       alert("Square OAuth is not configured correctly. Missing Application ID or Redirect URI.");
