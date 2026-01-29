@@ -13,7 +13,7 @@ interface AccountSettingsProps {
 
 const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onLogout, subtitle }) => {
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const { textSize, updateTextSize, pushAlertsEnabled, updatePushAlertsEnabled, branding } = useSettings();
+  const { textSize, updateTextSize, pushAlertsEnabled, updatePushAlertsEnabled, branding, saveAll } = useSettings();
 
   const handlePasswordChange = () => {
     alert("Password change functionality is not yet connected to the backend.");
@@ -74,13 +74,28 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onLogout, subti
                             <span className="text-xs font-black uppercase text-gray-500 tracking-widest">Text Size</span>
                             <div className="flex bg-gray-100 p-1 rounded-xl">
                                 {(['S', 'M', 'L'] as AppTextSize[]).map(sz => (
-                                    <button key={sz} onClick={() => updateTextSize(sz)} className={`px-4 py-1.5 rounded-lg text-xs font-black ${sz === textSize ? 'bg-white shadow text-gray-900' : 'text-gray-400'}`}>{sz}</button>
+                                    <button
+                                        key={sz}
+                                        onClick={() => {
+                                          updateTextSize(sz);
+                                          saveAll();
+                                        }}
+                                        className={`px-4 py-1.5 rounded-lg text-xs font-black ${sz === textSize ? 'bg-white shadow text-gray-900' : 'text-gray-400'}`}
+                                    >
+                                      {sz}
+                                    </button>
                                 ))}
                             </div>
                         </div>
                         <div className="flex justify-between items-center">
                             <span className="text-xs font-black uppercase text-gray-500 tracking-widest">Push Alerts</span>
-                            <button onClick={() => updatePushAlertsEnabled(!pushAlertsEnabled)} className={`w-12 h-6 rounded-full relative transition-colors ${pushAlertsEnabled ? 'bg-brand-secondary' : 'bg-gray-200'}`}>
+                            <button
+                                onClick={() => {
+                                  updatePushAlertsEnabled(!pushAlertsEnabled);
+                                  saveAll();
+                                }}
+                                className={`w-12 h-6 rounded-full relative transition-colors ${pushAlertsEnabled ? 'bg-brand-secondary' : 'bg-gray-200'}`}
+                            >
                                 <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${pushAlertsEnabled ? 'transform translate-x-7' : 'transform translate-x-1'}`}></div>
                             </button>
                         </div>
