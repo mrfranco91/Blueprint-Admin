@@ -57,7 +57,7 @@ export default function AdminDashboard({ role }: { role: UserRole }) {
   const totalPipeline = plans.filter(p => p.status === 'active' || p.status === 'draft').reduce((sum, p) => sum + p.totalCost, 0);
 
   const pipelineGrowthData = useMemo(() => {
-    const sortedPlans = [...plans].sort((a, b) => new Date(a.createdAt).getTime() - b.getTime());
+    const sortedPlans = [...plans].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
     let cumulativeValue = 0;
     const dataMap = new Map<string, number>();
     sortedPlans.forEach(plan => {
