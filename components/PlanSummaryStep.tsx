@@ -695,6 +695,15 @@ const PlanSummaryStep: React.FC<PlanSummaryStepProps> = ({ plan, role, onEditPla
                                 </div>
                             </div>
 
+                            {isContactRestricted && (
+                                <div className="bg-amber-50 p-4 rounded-2xl border-2 border-amber-100 flex items-start space-x-3">
+                                    <div className="bg-amber-500 text-white rounded-full p-1 mt-0.5">!</div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Permission Required</p>
+                                        <p className="text-[11px] font-bold text-amber-900 leading-tight">You do not have access to client contact details. Ask an admin to enable contact visibility for your level.</p>
+                                    </div>
+                                </div>
+                            )}
                             {isMissingContact && (
                                 <div className="bg-red-50 p-4 rounded-2xl border-2 border-red-100 flex items-start space-x-3">
                                     <div className="bg-red-500 text-white rounded-full p-1 mt-0.5">!</div>
