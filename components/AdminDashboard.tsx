@@ -86,7 +86,7 @@ export default function AdminDashboard({ role }: { role: UserRole }) {
         SquareIntegrationService.fetchTeam(),
         SquareIntegrationService.fetchCustomers(),
       ]);
-      
+
       if (newStylists.length) updateStylists(newStylists);
       if (newServices.length) updateServices(newServices);
       if (newCustomers.length) {
@@ -103,6 +103,68 @@ export default function AdminDashboard({ role }: { role: UserRole }) {
       setSyncMessage(`Error: ${e.message}`);
     } finally {
       setIsSyncing(false);
+    }
+  };
+
+  const handleInviteStylist = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setInviteError(null);
+    setInviteStatus(null);
+
+    if (!inviteName.trim() || !inviteEmail.trim()) {
+      setInviteError('Enter a name and email for the stylist.');
+      return;
+    }
+
+    if (!supabase) {
+      setInviteError('Supabase is not configured.');
+      return;
+    }
+
+    setInviteLoading(true);
+
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+
+      if (!accessToken) {
+        throw new Error('Please log in again to send invites.');
+      }
+
+      const response = await fetch('/api/stylists/invite', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          name: inviteName.trim(),
+          email: inviteEmail.trim(),
+          levelId: inviteLevelId || levels[0]?.id || 'lvl_1',
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.message || 'Failed to send invite.');
+      }
+
+      if (data?.stylist) {
+        const nextStylists = stylists.some(s => s.id === data.stylist.id)
+          ? stylists.map(s => (s.id === data.stylist.id ? data.stylist : s))
+          : [...stylists, data.stylist];
+        updateStylists(nextStylists);
+      }
+
+      setInviteStatus('Invite sent.');
+      setInviteName('');
+      setInviteEmail('');
+      setInviteLevelId(levels[0]?.id || 'lvl_1');
+      setShowInviteForm(false);
+    } catch (e: any) {
+      setInviteError(e.message || 'Failed to send invite.');
+    } finally {
+      setInviteLoading(false);
     }
   };
 
