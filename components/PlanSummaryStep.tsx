@@ -510,10 +510,11 @@ const PlanSummaryStep: React.FC<PlanSummaryStepProps> = ({ plan, role, onEditPla
   };
 
   const isMissingContact = useMemo(() => {
+    if (!canViewClientContact) return false;
     if (deliveryMethod === 'sms') return !plan.client.phone;
     if (deliveryMethod === 'email') return !plan.client.email;
     return false;
-  }, [deliveryMethod, plan.client]);
+  }, [canViewClientContact, deliveryMethod, plan.client]);
   
   const buttonStyle = {
       backgroundColor: branding.primaryColor,
