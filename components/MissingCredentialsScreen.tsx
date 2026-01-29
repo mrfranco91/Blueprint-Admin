@@ -214,6 +214,10 @@ const MissingCredentialsScreen = () => {
                     <p className="break-all font-mono text-[11px] text-gray-800">{oauthDebug?.resolvedRedirectUri || 'Not resolved'}</p>
                   </div>
                   <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Env Redirect</p>
+                    <p className="break-all font-mono text-[11px] text-gray-800">{squareRedirectUri || 'Not set'}</p>
+                  </div>
+                  <div>
                     <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Square Environment</p>
                     <p className="font-mono text-[11px] text-gray-800">{oauthDebug?.squareEnv || 'Unknown'}</p>
                   </div>
