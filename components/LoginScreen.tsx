@@ -11,6 +11,10 @@ const LoginScreen: React.FC = () => {
   const [token, setToken] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [stylistEmail, setStylistEmail] = useState('');
+  const [stylistPassword, setStylistPassword] = useState('');
+  const [stylistLoading, setStylistLoading] = useState(false);
+  const [stylistError, setStylistError] = useState<string | null>(null);
 
   const squareRedirectUri = (import.meta as any).env.VITE_SQUARE_REDIRECT_URI;
 
