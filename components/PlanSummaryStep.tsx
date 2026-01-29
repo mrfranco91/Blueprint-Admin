@@ -69,6 +69,7 @@ const PlanSummaryStep: React.FC<PlanSummaryStepProps> = ({ plan, role, onEditPla
   }, [allStylists, user]);
   const canBook = user?.role === 'admin' || isClient || !!loggedInStylist?.permissions.canBookAppointments;
   const canViewClientContact = user?.role === 'admin' || isClient || !!loggedInStylist?.permissions.viewClientContact;
+  const isContactRestricted = !isClient && user?.role === 'stylist' && !canViewClientContact;
 
   const qualifyingTier = useMemo(() => {
       if (!membershipConfig?.tiers || membershipConfig.tiers.length === 0) return undefined;
