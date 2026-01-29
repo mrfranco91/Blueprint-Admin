@@ -292,6 +292,58 @@ const LoginScreen: React.FC = () => {
               {loading ? 'Syncing...' : 'Sync with Token'}
             </button>
           </form>
+
+          <div className="my-8 flex items-center gap-3">
+            <div className="flex-1 h-0.5 bg-gray-200" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Stylist access</span>
+            <div className="flex-1 h-0.5 bg-gray-200" />
+          </div>
+
+          <form onSubmit={handleStylistLogin} className="space-y-4">
+            <div>
+              <label className="block text-[9px] font-black uppercase tracking-widest mb-2 text-gray-600">
+                Stylist email
+              </label>
+              <input
+                type="email"
+                value={stylistEmail}
+                onChange={(event) => setStylistEmail(event.target.value)}
+                placeholder="name@salon.com"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl font-bold text-sm focus:outline-none focus:border-gray-950"
+                autoComplete="email"
+                disabled={stylistLoading}
+              />
+            </div>
+            <div>
+              <label className="block text-[9px] font-black uppercase tracking-widest mb-2 text-gray-600">
+                Password
+              </label>
+              <input
+                type="password"
+                value={stylistPassword}
+                onChange={(event) => setStylistPassword(event.target.value)}
+                placeholder="Your password"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl font-bold text-sm focus:outline-none focus:border-gray-950"
+                autoComplete="current-password"
+                disabled={stylistLoading}
+              />
+            </div>
+            {stylistError && (
+              <p className="text-red-600 text-xs font-bold text-center bg-red-50 p-3 rounded-lg">
+                {stylistError}
+              </p>
+            )}
+            <button
+              type="submit"
+              disabled={stylistLoading}
+              className="w-full font-black py-4 rounded-2xl border-4 border-gray-950 uppercase tracking-widest text-sm shadow-lg bg-gray-950 text-white"
+            >
+              {stylistLoading ? 'Signing in...' : 'Sign in as stylist'}
+            </button>
+            <p className="text-xs text-gray-500 font-semibold text-center">
+              Invited stylists can set a password from the invite email, then sign in here.
+            </p>
+          </form>
         </div>
       </div>
     </div>
