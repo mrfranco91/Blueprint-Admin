@@ -185,6 +185,37 @@ export default function AdminDashboard({ role }: { role: UserRole }) {
     }
   };
 
+  const persistStylistUpdates = async (stylist: Stylist) => {
+    if (!supabase) {
+      setStylistSaveError('Supabase is not configured.');
+      return;
+    }
+
+    setStylistSaveLoading(true);
+    setStylistSaveError(null);
+
+    try {
+      const { error } = await supabase
+        .from('square_team_members')
+        .update({
+          level_id: stylist.levelId,
+          permissions: stylist.permissionOverrides || {},
+        })
+        .eq('square_team_member_id', stylist.id);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      saveAll();
+      setEditingStylist(null);
+    } catch (e: any) {
+      setStylistSaveError(e.message || 'Failed to save stylist changes.');
+    } finally {
+      setStylistSaveLoading(false);
+    }
+  };
+
   const renderDashboard = () => (
     <div className="p-6 bg-gradient-to-b from-gray-50 to-white min-h-screen">
       <h1 className="text-4xl font-black text-brand-accent tracking-tighter mb-8">Admin Dashboard</h1>
