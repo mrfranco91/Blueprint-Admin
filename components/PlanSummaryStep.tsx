@@ -71,11 +71,13 @@ const PlanSummaryStep: React.FC<PlanSummaryStepProps> = ({ plan, role, onEditPla
   const canViewClientContact = user?.role === 'admin' || isClient || !!loggedInStylist?.permissions.viewClientContact;
   const isContactRestricted = !isClient && user?.role === 'stylist' && !canViewClientContact;
 
+  const projectedMonthlySpend = useMemo(() => plan.totalCost / 12, [plan.totalCost]);
+
   const qualifyingTier = useMemo(() => {
       if (!membershipConfig?.tiers || membershipConfig.tiers.length === 0) return undefined;
       const sortedTiers = [...membershipConfig.tiers].sort((a, b) => b.minSpend - a.minSpend);
-      return sortedTiers.find(t => plan.averageMonthlySpend >= t.minSpend) || sortedTiers[sortedTiers.length - 1];
-  }, [plan.averageMonthlySpend, membershipConfig?.tiers]);
+      return sortedTiers.find(t => projectedMonthlySpend >= t.minSpend) || sortedTiers[sortedTiers.length - 1];
+  }, [projectedMonthlySpend, membershipConfig?.tiers]);
 
   const invitationMessage = useMemo(() => {
     if (!qualifyingTier || !plan.client.name) return '';
