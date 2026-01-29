@@ -285,14 +285,22 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
           setTeamError(null);
         } else {
           console.log('[Settings] Setting stylists:', (data || []).length);
-          const mapped: Stylist[] = (data || []).map((row: any) => ({
-            id: row.square_team_member_id,
-            name: row.name,
-            role: row.role || 'Team Member',
-            email: row.email,
-            levelId: row.level_id || 'default',
-            permissions: row.permissions || {},
-          }));
+          const mapped: Stylist[] = (data || []).map((row: any) => {
+            const levelId = row.level_id || levels[0]?.id || 'lvl_1';
+            const permissionOverrides = row.permission_overrides || row.permissions || {};
+            const levelDefaults = resolveLevelDefaults(levelId);
+            const permissions = { ...levelDefaults, ...permissionOverrides };
+
+            return {
+              id: row.square_team_member_id,
+              name: row.name,
+              role: row.role || 'Team Member',
+              email: row.email,
+              levelId,
+              permissions,
+              permissionOverrides,
+            };
+          });
           setStylists(mapped);
         }
       } catch (e: any) {
