@@ -307,6 +307,93 @@ export default function AdminDashboard({ role }: { role: UserRole }) {
     return (
       <div className="p-6 bg-gradient-to-b from-gray-50 to-white min-h-screen">
         <h1 className="text-4xl font-black text-brand-accent tracking-tighter mb-8">Team Management</h1>
+        <div className="bg-white border-4 border-gray-100 rounded-3xl p-6 shadow-sm mb-6">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">Invite stylist</p>
+              <p className="text-sm font-black text-gray-900">Send a secure invite so a stylist can create their login.</p>
+            </div>
+            <button
+              onClick={() => {
+                setShowInviteForm((prev) => !prev);
+                setInviteError(null);
+                setInviteStatus(null);
+                if (!inviteLevelId) {
+                  setInviteLevelId(levels[0]?.id || 'lvl_1');
+                }
+              }}
+              className="px-5 py-3 bg-gray-950 text-white font-black rounded-2xl text-xs uppercase tracking-widest"
+            >
+              {showInviteForm ? 'Close invite' : 'Invite stylist'}
+            </button>
+          </div>
+          {showInviteForm && (
+            <form onSubmit={handleInviteStylist} className="mt-5 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[9px] font-black uppercase tracking-widest mb-2 text-gray-500">
+                    Stylist name
+                  </label>
+                  <input
+                    type="text"
+                    value={inviteName}
+                    onChange={(event) => setInviteName(event.target.value)}
+                    placeholder="Stylist name"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl font-bold text-sm focus:outline-none focus:border-gray-950"
+                    disabled={inviteLoading}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[9px] font-black uppercase tracking-widest mb-2 text-gray-500">
+                    Stylist email
+                  </label>
+                  <input
+                    type="email"
+                    value={inviteEmail}
+                    onChange={(event) => setInviteEmail(event.target.value)}
+                    placeholder="stylist@salon.com"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl font-bold text-sm focus:outline-none focus:border-gray-950"
+                    disabled={inviteLoading}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[9px] font-black uppercase tracking-widest mb-2 text-gray-500">
+                  Stylist level
+                </label>
+                <select
+                  value={inviteLevelId}
+                  onChange={(event) => setInviteLevelId(event.target.value)}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl font-bold text-sm focus:outline-none focus:border-gray-950"
+                  disabled={inviteLoading}
+                >
+                  {levels.map((level) => (
+                    <option key={level.id} value={level.id}>
+                      {level.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {inviteError && (
+                <div className="rounded-2xl bg-red-50 border border-red-100 px-4 py-3 text-xs font-semibold text-red-700">
+                  {inviteError}
+                </div>
+              )}
+              {inviteStatus && (
+                <div className="rounded-2xl bg-green-50 border border-green-100 px-4 py-3 text-xs font-semibold text-green-700">
+                  {inviteStatus}
+                </div>
+              )}
+              <button
+                type="submit"
+                disabled={inviteLoading}
+                className="w-full py-4 bg-brand-accent text-white font-black rounded-2xl shadow-lg hover:shadow-xl transition-shadow disabled:opacity-60"
+              >
+                {inviteLoading ? 'Sending invite...' : 'Send stylist invite'}
+              </button>
+            </form>
+          )}
+        </div>
         <div className="space-y-4">
           {stylists.map(s => (
             <button key={s.id} onClick={() => setEditingStylist(s)} className="w-full flex items-center p-6 bg-white border-4 border-gray-100 rounded-3xl hover:border-brand-accent hover:shadow-md transition-all shadow-sm group">
