@@ -91,11 +91,23 @@ export interface GeneratedPlan {
     totalCost: number;
 }
 
+export interface StylistPermissions {
+    canBookAppointments: boolean;
+    canOfferDiscounts: boolean;
+    requiresDiscountApproval: boolean;
+    viewGlobalReports: boolean;
+    viewClientContact: boolean;
+    viewAllSalonPlans: boolean;
+    can_book_own_schedule: boolean;
+    can_book_peer_schedules: boolean;
+}
+
 export interface StylistLevel {
     id: string;
     name: string;
     color: string;
     order: number;
+    defaultPermissions: StylistPermissions;
 }
 
 export interface Stylist {
@@ -104,16 +116,8 @@ export interface Stylist {
     role: string;
     email: string;
     levelId: string;
-    permissions: {
-        canBookAppointments: boolean;
-        canOfferDiscounts: boolean;
-        requiresDiscountApproval: boolean;
-        viewGlobalReports: boolean;
-        viewClientContact: boolean;
-        viewAllSalonPlans: boolean;
-        can_book_own_schedule: boolean;
-        can_book_peer_schedules: boolean;
-    };
+    permissions: StylistPermissions;
+    permissionOverrides?: Partial<StylistPermissions>;
 }
 
 export interface MembershipTier {

@@ -1,9 +1,54 @@
 import type { Service, MembershipTier, StylistLevel } from '../types';
 
 export const STYLIST_LEVELS: StylistLevel[] = [
-    { id: 'lvl_1', name: 'Junior Stylist', color: 'bg-blue-100 text-blue-800', order: 1 },
-    { id: 'lvl_2', name: 'Senior Stylist', color: 'bg-purple-100 text-purple-800', order: 2 },
-    { id: 'lvl_3', name: 'Master Stylist', color: 'bg-amber-100 text-amber-800', order: 3 },
+    {
+        id: 'lvl_1',
+        name: 'Junior Stylist',
+        color: 'bg-blue-100 text-blue-800',
+        order: 1,
+        defaultPermissions: {
+            canBookAppointments: true,
+            canOfferDiscounts: false,
+            requiresDiscountApproval: true,
+            viewGlobalReports: false,
+            viewClientContact: true,
+            viewAllSalonPlans: false,
+            can_book_own_schedule: true,
+            can_book_peer_schedules: false,
+        }
+    },
+    {
+        id: 'lvl_2',
+        name: 'Senior Stylist',
+        color: 'bg-purple-100 text-purple-800',
+        order: 2,
+        defaultPermissions: {
+            canBookAppointments: true,
+            canOfferDiscounts: true,
+            requiresDiscountApproval: false,
+            viewGlobalReports: false,
+            viewClientContact: true,
+            viewAllSalonPlans: false,
+            can_book_own_schedule: true,
+            can_book_peer_schedules: false,
+        }
+    },
+    {
+        id: 'lvl_3',
+        name: 'Master Stylist',
+        color: 'bg-amber-100 text-amber-800',
+        order: 3,
+        defaultPermissions: {
+            canBookAppointments: true,
+            canOfferDiscounts: true,
+            requiresDiscountApproval: false,
+            viewGlobalReports: true,
+            viewClientContact: true,
+            viewAllSalonPlans: true,
+            can_book_own_schedule: true,
+            can_book_peer_schedules: true,
+        }
+    },
 ];
 
 export const ALL_SERVICES: Service[] = [

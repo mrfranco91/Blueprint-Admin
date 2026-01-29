@@ -1,4 +1,3 @@
-
 import type { Service, Stylist } from '../types';
 import { ALL_SERVICES } from '../data/mockData';
 
@@ -38,16 +37,17 @@ const EXTERNAL_NEW_STYLIST: Stylist = {
     levelId: 'lvl_3',
     email: 'chloe@luxesalon.com',
     // FIX: Updated permissions to match the Stylist interface definition in types.ts
-    permissions: { 
-        canBookAppointments: true, 
-        canOfferDiscounts: true, 
-        requiresDiscountApproval: false, 
+    permissions: {
+        canBookAppointments: true,
+        canOfferDiscounts: true,
+        requiresDiscountApproval: false,
         viewGlobalReports: true,
-        // FIX: Added missing property 'viewClientContact' to satisfy the Stylist interface.
         viewClientContact: true,
-        // FIX: Added missing property 'viewAllSalonPlans' to satisfy the Stylist interface.
-        viewAllSalonPlans: true
-    }
+        viewAllSalonPlans: true,
+        can_book_own_schedule: true,
+        can_book_peer_schedules: true,
+    },
+    permissionOverrides: {}
 };
 
 // The Service Implementation

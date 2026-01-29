@@ -172,7 +172,8 @@ export const SquareIntegrationService = {
                   viewAllSalonPlans: false,
                   can_book_own_schedule: true,
                   can_book_peer_schedules: false,
-              }
+              },
+              permissionOverrides: {}
           }));
       } catch (err) {
           console.error('Failed to load Square team members:', err);

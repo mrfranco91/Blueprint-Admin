@@ -43,7 +43,7 @@ const StylistDashboard: React.FC<StylistDashboardProps> = ({ onLogout, role: pro
     _setStep(newStep);
   };
   
-  const { services: availableServices, clients: globalClients, branding } = useSettings(); 
+  const { services: availableServices, clients: globalClients, branding, stylists } = useSettings();
   const { user } = useAuth();
   const { savePlan, getPlanForClient, getClientHistory, plans } = usePlans();
 
@@ -72,20 +72,29 @@ const StylistDashboard: React.FC<StylistDashboardProps> = ({ onLogout, role: pro
       return globalClients.filter(c => c.name.toLowerCase().includes(clientSearch.toLowerCase()));
   }, [clientSearch, globalClients]);
 
-  const myPlans = useMemo(() => {
+  const loggedInStylist = useMemo(() => {
+      if (user?.role !== 'stylist') return null;
+      const stylistId = user.stylistData?.id || user.id;
+      return stylists.find(stylist => stylist.id === stylistId) || null;
+  }, [stylists, user]);
+
+  const canViewAllPlans = !!loggedInStylist?.permissions.viewAllSalonPlans;
+
+  const visiblePlans = useMemo(() => {
       if (!user) return [];
+      if (canViewAllPlans) return plans;
       return plans.filter(p => p.stylistId === user.id);
-  }, [plans, user]);
+  }, [plans, user, canViewAllPlans]);
 
   const myStats = useMemo(() => {
-      const myPipeline = myPlans.reduce((sum, p) => sum + p.totalCost, 0);
-      const myActivePlansCount = myPlans.filter(p => p.status === 'active').length;
-      const myClientsCount = new Set(myPlans.map(p => p.client.id)).size;
+      const myPipeline = visiblePlans.reduce((sum, p) => sum + p.totalCost, 0);
+      const myActivePlansCount = visiblePlans.filter(p => p.status === 'active').length;
+      const myClientsCount = new Set(visiblePlans.map(p => p.client.id)).size;
       return { myPipeline, myActivePlansCount, myClientsCount };
-  }, [myPlans]);
+  }, [visiblePlans]);
 
   const myPipelineGrowthData = useMemo(() => {
-    const sortedPlans = [...myPlans].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    const sortedPlans = [...visiblePlans].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
     let cumulativeValue = 0;
     const dataMap = new Map<string, number>();
     sortedPlans.forEach(plan => {
@@ -104,7 +113,7 @@ const StylistDashboard: React.FC<StylistDashboardProps> = ({ onLogout, role: pro
         if(dataMap.has(month)) lastKnownValue = dataMap.get(month)!;
         return { name: month, value: lastKnownValue };
     });
-  }, [myPlans]);
+  }, [visiblePlans]);
 
   const resetWizard = () => {
     setSelectedServiceIds([]);
@@ -174,20 +183,20 @@ const StylistDashboard: React.FC<StylistDashboardProps> = ({ onLogout, role: pro
             </div>
             <div className="grid grid-cols-3 gap-4 mb-6">
                 <div className="col-span-3 bg-gray-950 text-white p-8 rounded-[32px] shadow-lg border-4 border-gray-900 hover:shadow-xl transition-shadow">
-                    <p className="text-sm font-black uppercase text-gray-400 mb-2 tracking-widest">My Pipeline</p>
+                    <p className="text-sm font-black uppercase text-gray-400 mb-2 tracking-widest">{canViewAllPlans ? 'Salon Pipeline' : 'My Pipeline'}</p>
                     <p className="text-6xl font-black" style={{ color: branding.secondaryColor }}>${myStats.myPipeline.toLocaleString()}</p>
                 </div>
                 <div className="bg-white col-span-2 p-6 rounded-3xl border-4 border-gray-100 shadow-sm hover:shadow-md hover:border-brand-accent transition-all">
-                    <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-2">Active Plans</p>
+                    <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-2">{canViewAllPlans ? 'Salon Plans' : 'Active Plans'}</p>
                     <p className="text-5xl font-black text-brand-primary">{myStats.myActivePlansCount}</p>
                 </div>
                 <div className="bg-white p-6 rounded-3xl border-4 border-gray-100 shadow-sm hover:shadow-md hover:border-brand-accent transition-all">
-                    <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-2">My Clients</p>
+                    <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-2">{canViewAllPlans ? 'Salon Clients' : 'My Clients'}</p>
                     <p className="text-5xl font-black text-brand-primary">{myStats.myClientsCount}</p>
                 </div>
             </div>
             <div className="bg-white p-7 rounded-3xl border-4 border-gray-100 shadow-sm hover:shadow-md transition-shadow mb-6">
-                <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest mb-4">My Pipeline Growth</h3>
+                <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest mb-4">{canViewAllPlans ? 'Salon Pipeline Growth' : 'My Pipeline Growth'}</h3>
                 <div className="h-48">
                     <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={myPipelineGrowthData}>

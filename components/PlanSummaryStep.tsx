@@ -62,7 +62,14 @@ const PlanSummaryStep: React.FC<PlanSummaryStepProps> = ({ plan, role, onEditPla
   const isMemberActive = plan.membershipStatus === 'active';
 
   const isClient = user?.role === 'client';
-  const canBook = user?.role === 'admin' || isClient || user?.stylistData?.permissions.canBookAppointments;
+  const loggedInStylist = useMemo(() => {
+    if (user?.role !== 'stylist') return null;
+    const stylistId = user.stylistData?.id || user.id;
+    return allStylists.find((stylist) => stylist.id === stylistId) || null;
+  }, [allStylists, user]);
+  const canBook = user?.role === 'admin' || isClient || !!loggedInStylist?.permissions.canBookAppointments;
+  const canViewClientContact = user?.role === 'admin' || isClient || !!loggedInStylist?.permissions.viewClientContact;
+  const isContactRestricted = !isClient && user?.role === 'stylist' && !canViewClientContact;
 
   const qualifyingTier = useMemo(() => {
       if (!membershipConfig?.tiers || membershipConfig.tiers.length === 0) return undefined;
@@ -121,8 +128,12 @@ const PlanSummaryStep: React.FC<PlanSummaryStepProps> = ({ plan, role, onEditPla
   };
 
   const handleSendInvite = async () => {
+    if (!canViewClientContact && !isClient && user?.role === 'stylist') {
+      return;
+    }
+
     setIsSendingInvite(true);
-    
+
     const message = invitationMessage;
     const clientPhone = plan.client.phone || '';
     const clientEmail = plan.client.email || '';
@@ -131,7 +142,7 @@ const PlanSummaryStep: React.FC<PlanSummaryStepProps> = ({ plan, role, onEditPla
         if (deliveryMethod === 'sms') {
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
             const separator = isIOS ? '&' : '?';
-            const cleanPhone = clientPhone.replace(/\D/g, ''); 
+            const cleanPhone = clientPhone.replace(/\D/g, '');
             window.location.href = `sms:${cleanPhone}${separator}body=${encodeURIComponent(message)}`;
         } else if (deliveryMethod === 'email') {
             window.location.href = `mailto:${clientEmail}?subject=${encodeURIComponent("Your Salon Roadmap & Membership Invitation")}&body=${encodeURIComponent(message)}`;
@@ -140,7 +151,7 @@ const PlanSummaryStep: React.FC<PlanSummaryStepProps> = ({ plan, role, onEditPla
                 navigator.clipboard.writeText(message);
             }
         }
-        
+
         await savePlan({ ...plan, membershipStatus: 'offered', membershipOfferSentAt: new Date().toISOString() });
         setInviteSent(true);
         setTimeout(() => {
@@ -431,18 +442,15 @@ const PlanSummaryStep: React.FC<PlanSummaryStepProps> = ({ plan, role, onEditPla
               }
           }
 
-          if (user?.role === 'stylist' && user.stylistData) {
-              const loggedInStylist = allStylists.find(s => s.id === user.stylistData!.id);
-              if (loggedInStylist) {
-                  const isBookingForSelf = stylistIdToBookFor === loggedInStylist.id;
+          if (user?.role === 'stylist' && loggedInStylist) {
+              const isBookingForSelf = stylistIdToBookFor === loggedInStylist.id;
 
-                  if (isBookingForSelf && !loggedInStylist.permissions.can_book_own_schedule) {
-                      throw new Error("You do not have permission to book appointments for your own schedule.");
-                  }
+              if (isBookingForSelf && !loggedInStylist.permissions.can_book_own_schedule) {
+                  throw new Error("You do not have permission to book appointments for your own schedule.");
+              }
 
-                  if (!isBookingForSelf && !loggedInStylist.permissions.can_book_peer_schedules) {
-                      throw new Error("You do not have permission to book appointments for other team members.");
-                  }
+              if (!isBookingForSelf && !loggedInStylist.permissions.can_book_peer_schedules) {
+                  throw new Error("You do not have permission to book appointments for other team members.");
               }
           }
 
@@ -500,10 +508,11 @@ const PlanSummaryStep: React.FC<PlanSummaryStepProps> = ({ plan, role, onEditPla
   };
 
   const isMissingContact = useMemo(() => {
+    if (!canViewClientContact) return false;
     if (deliveryMethod === 'sms') return !plan.client.phone;
     if (deliveryMethod === 'email') return !plan.client.email;
     return false;
-  }, [deliveryMethod, plan.client]);
+  }, [canViewClientContact, deliveryMethod, plan.client]);
   
   const buttonStyle = {
       backgroundColor: branding.primaryColor,
@@ -683,6 +692,15 @@ const PlanSummaryStep: React.FC<PlanSummaryStepProps> = ({ plan, role, onEditPla
                                 </div>
                             </div>
 
+                            {isContactRestricted && (
+                                <div className="bg-amber-50 p-4 rounded-2xl border-2 border-amber-100 flex items-start space-x-3">
+                                    <div className="bg-amber-500 text-white rounded-full p-1 mt-0.5">!</div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Permission Required</p>
+                                        <p className="text-[11px] font-bold text-amber-900 leading-tight">You do not have access to client contact details. Ask an admin to enable contact visibility for your level.</p>
+                                    </div>
+                                </div>
+                            )}
                             {isMissingContact && (
                                 <div className="bg-red-50 p-4 rounded-2xl border-2 border-red-100 flex items-start space-x-3">
                                     <div className="bg-red-500 text-white rounded-full p-1 mt-0.5">!</div>
@@ -700,14 +718,14 @@ const PlanSummaryStep: React.FC<PlanSummaryStepProps> = ({ plan, role, onEditPla
                                 </div>
                             </div>
 
-                            <button 
+                            <button
                                 onClick={handleSendInvite}
-                                disabled={isSendingInvite}
+                                disabled={isSendingInvite || isContactRestricted}
                                 className="w-full font-black py-5 rounded-2xl shadow-xl flex items-center justify-center space-x-3 active:scale-95 transition-all border-b-8 border-black/20 disabled:opacity-50"
                                 style={{ backgroundColor: branding.primaryColor, color: ensureAccessibleColor('#FFFFFF', branding.primaryColor, '#FFFFFF') }}
                             >
                                 {isSendingInvite ? <RefreshIcon className="w-6 h-6 animate-spin" /> : <ShareIcon className="w-6 h-6" />}
-                                <span>{isSendingInvite ? 'OPENING...' : `OPEN ${deliveryMethod.toUpperCase()}`}</span>
+                                <span>{isSendingInvite ? 'OPENING...' : isContactRestricted ? 'CONTACT ACCESS REQUIRED' : `OPEN ${deliveryMethod.toUpperCase()}`}</span>
                             </button>
                             
                             <button onClick={() => setMembershipModalOpen(false)} className="w-full text-center text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-gray-950 transition-colors">Cancel</button>
