@@ -10,9 +10,11 @@ export default function handler(req: any, res: any) {
   const forwardedHost = req.headers['x-forwarded-host'] || req.headers['host'];
   const resolvedProto = Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto;
   const resolvedHost = Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost;
-  const requestOrigin = resolvedHost
-    ? `${resolvedProto || (req.secure ? 'https' : 'http')}://${resolvedHost}`
-    : null;
+  const inferredProto = resolvedProto || (req.secure ? 'https' : 'http');
+  const protocol = resolvedHost && !resolvedHost.includes('localhost') && !resolvedHost.includes('127.0.0.1')
+    ? 'https'
+    : inferredProto;
+  const requestOrigin = resolvedHost ? `${protocol}://${resolvedHost}` : null;
   const requestRedirectUri = requestOrigin ? `${requestOrigin}/square/callback` : null;
 
   const resolvedRedirectUri = (() => {
