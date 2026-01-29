@@ -62,7 +62,13 @@ const PlanSummaryStep: React.FC<PlanSummaryStepProps> = ({ plan, role, onEditPla
   const isMemberActive = plan.membershipStatus === 'active';
 
   const isClient = user?.role === 'client';
-  const canBook = user?.role === 'admin' || isClient || user?.stylistData?.permissions.canBookAppointments;
+  const loggedInStylist = useMemo(() => {
+    if (user?.role !== 'stylist') return null;
+    const stylistId = user.stylistData?.id || user.id;
+    return allStylists.find((stylist) => stylist.id === stylistId) || null;
+  }, [allStylists, user]);
+  const canBook = user?.role === 'admin' || isClient || !!loggedInStylist?.permissions.canBookAppointments;
+  const canViewClientContact = user?.role === 'admin' || isClient || !!loggedInStylist?.permissions.viewClientContact;
 
   const qualifyingTier = useMemo(() => {
       if (!membershipConfig?.tiers || membershipConfig.tiers.length === 0) return undefined;
