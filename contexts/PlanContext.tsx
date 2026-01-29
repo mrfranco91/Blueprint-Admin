@@ -167,7 +167,7 @@ export const PlanProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         };
 
         fetchData();
-    }, [user]);
+    }, [user, stylists]);
 
     const savePlan = async (newPlan: GeneratedPlan): Promise<GeneratedPlan> => {
         console.log('savePlan called with:', newPlan);
