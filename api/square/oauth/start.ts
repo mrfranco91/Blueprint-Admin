@@ -28,17 +28,42 @@ export default function handler(req: any, res: any) {
     return squareRedirectUri || requestRedirectUri;
   })();
 
-  if (!squareAppId || !resolvedRedirectUri) {
-    console.error('[OAUTH START] Missing config:', { hasAppId: !!squareAppId, hasRedirectUri: !!resolvedRedirectUri });
-    return res.status(500).json({ message: 'Square OAuth environment variables are not configured on the server.' });
-  }
-
-  console.log('[OAUTH START] Initiating OAuth with redirect_uri:', resolvedRedirectUri);
-
   const authorizeBase =
     squareEnv === 'sandbox'
       ? 'https://connect.squareupsandbox.com/oauth2/authorize'
       : 'https://connect.squareup.com/oauth2/authorize';
+
+  const debugMode = req.query?.debug === '1' || req.query?.debug === 'true';
+
+  if (!squareAppId || !resolvedRedirectUri) {
+    console.error('[OAUTH START] Missing config:', { hasAppId: !!squareAppId, hasRedirectUri: !!resolvedRedirectUri });
+    if (debugMode) {
+      return res.status(200).json({
+        ok: false,
+        hasAppId: !!squareAppId,
+        hasRedirectUri: !!resolvedRedirectUri,
+        resolvedRedirectUri,
+        requestOrigin,
+        authorizeBase,
+        squareEnv,
+        oauthScopes,
+      });
+    }
+    return res.status(500).json({ message: 'Square OAuth environment variables are not configured on the server.' });
+  }
+
+  if (debugMode) {
+    return res.status(200).json({
+      ok: true,
+      resolvedRedirectUri,
+      requestOrigin,
+      authorizeBase,
+      squareEnv,
+      oauthScopes,
+    });
+  }
+
+  console.log('[OAUTH START] Initiating OAuth with redirect_uri:', resolvedRedirectUri);
 
   const state = crypto.randomUUID();
 
