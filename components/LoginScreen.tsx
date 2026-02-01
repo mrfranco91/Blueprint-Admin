@@ -111,6 +111,7 @@ const LoginScreen: React.FC = () => {
             backgroundColor: `rgba(${parseInt(branding.primaryColor.slice(1, 3), 16)}, ${parseInt(branding.primaryColor.slice(3, 5), 16)}, ${parseInt(branding.primaryColor.slice(5, 7), 16)}, 0.08)`,
             "@media (max-width: 991px)": {
               marginTop: "-3px",
+              paddingTop: "2px",
             },
           } as any}
         >
@@ -130,6 +131,10 @@ const LoginScreen: React.FC = () => {
                   borderRadius: "338px",
                   border: "1px dashed rgb(15, 76, 129)",
                   overflow: "hidden",
+                  "@media (max-width: 991px)": {
+                    fontSize: "18px",
+                    lineHeight: "14.5px",
+                  },
                 } as any}
               >
                 Login with Square
@@ -185,6 +190,10 @@ const LoginScreen: React.FC = () => {
                 borderRadius: "338px",
                 border: "1px dashed rgb(15, 76, 129)",
                 overflow: "hidden",
+                "@media (max-width: 991px)": {
+                  fontSize: "18px",
+                  lineHeight: "14.5px",
+                },
               } as any}
             >
               {stylistLoading ? 'Signing in...' : 'Sign in as stylist'}
