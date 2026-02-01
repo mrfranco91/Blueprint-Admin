@@ -189,9 +189,4 @@
   .login-screen-content {
     padding-top: 2px;
   }
-
-  .stylist-email-input,
-  .stylist-password-input {
-    border-style: dashed !important;
-  }
 }
