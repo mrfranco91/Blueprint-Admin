@@ -132,7 +132,7 @@ const LoginScreen: React.FC = () => {
                     borderWidth: "1px",
                     fontWeight: "400",
                     fontSize: "27px",
-                    borderRadius: "99px",
+                    borderRadius: "338px",
                     overflow: "hidden",
                   },
                 } as any}
