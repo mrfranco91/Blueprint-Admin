@@ -119,7 +119,7 @@ const LoginScreen: React.FC = () => {
           </div>
 
           {squareRedirectUri && (
-            <div className="mb-6">
+            <div className="mb-6" style={{ marginBottom: "16px" } as any}>
               <button
                 onClick={startSquareOAuth}
                 className="blueprint-button font-black square-oauth-button"
@@ -129,13 +129,24 @@ const LoginScreen: React.FC = () => {
             </div>
           )}
 
-          <div className="my-8 flex items-center gap-3">
+          <div className="my-8 flex items-center gap-3" style={{
+            "@media (max-width: 991px)": {
+              justifyContent: "center",
+              alignItems: "center",
+              margin: "-8px 0 14px",
+            },
+          } as any}>
             <div className="flex-1 h-0.5 bg-gray-200" />
             <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Stylist access</span>
             <div className="flex-1 h-0.5 bg-gray-200" />
           </div>
 
-          <form onSubmit={handleStylistLogin} className="space-y-4">
+          <form onSubmit={handleStylistLogin} className="space-y-4" style={{
+            "@media (max-width: 991px)": {
+              display: "flex",
+              flexDirection: "column",
+            },
+          } as any}>
             <div>
               <label className="block text-[9px] font-black uppercase tracking-widest mb-2 text-gray-600">
                 Stylist email
@@ -146,6 +157,12 @@ const LoginScreen: React.FC = () => {
                 onChange={(event) => setStylistEmail(event.target.value)}
                 placeholder="name@salon.com"
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl font-bold text-sm focus:outline-none focus:border-gray-950 stylist-email-input"
+                style={{
+                  "@media (max-width: 991px)": {
+                    borderStyle: "solid",
+                    borderWidth: "1px",
+                  },
+                } as any}
                 autoComplete="email"
                 disabled={stylistLoading}
               />
@@ -160,6 +177,12 @@ const LoginScreen: React.FC = () => {
                 onChange={(event) => setStylistPassword(event.target.value)}
                 placeholder="Your password"
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl font-bold text-sm focus:outline-none focus:border-gray-950 stylist-password-input"
+                style={{
+                  "@media (max-width: 991px)": {
+                    borderStyle: "solid",
+                    borderWidth: "1px",
+                  },
+                } as any}
                 autoComplete="current-password"
                 disabled={stylistLoading}
               />
@@ -176,7 +199,12 @@ const LoginScreen: React.FC = () => {
             >
               {stylistLoading ? 'Signing in...' : 'Sign in as stylist'}
             </button>
-            <p className="text-xs text-gray-500 font-semibold text-center">
+            <p className="text-xs text-gray-500 font-semibold text-center" style={{
+              "@media (max-width: 991px)": {
+                maxWidth: "230px",
+                margin: "0 auto",
+              },
+            } as any}>
               Invited stylists can set a password from the invite email, then sign in here.
             </p>
           </form>
