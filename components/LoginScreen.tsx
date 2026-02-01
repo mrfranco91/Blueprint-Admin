@@ -129,13 +129,7 @@ const LoginScreen: React.FC = () => {
             </div>
           )}
 
-          <div className="my-8 flex items-center gap-3" style={{
-            "@media (max-width: 991px)": {
-              justifyContent: "center",
-              alignItems: "center",
-              margin: "-8px 0 14px",
-            },
-          } as any}>
+          <div className="my-8 flex items-center gap-3 stylist-divider">
             <div className="flex-1 h-0.5 bg-gray-200" />
             <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Stylist access</span>
             <div className="flex-1 h-0.5 bg-gray-200" />
