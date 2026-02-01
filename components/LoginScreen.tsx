@@ -47,7 +47,7 @@ const LoginScreen: React.FC = () => {
       style={{ backgroundColor: branding.primaryColor }}
     >
       <div
-        className="bg-white rounded-[40px] shadow-2xl w-full max-w-md overflow-hidden relative border-4 border-gray-950"
+        className="bg-white rounded-[80px] shadow-2xl w-full max-w-md overflow-hidden relative border-4 border-gray-950"
         style={{
           "@media (max-width: 991px)": {
             maxWidth: "656px",
@@ -115,6 +115,12 @@ const LoginScreen: React.FC = () => {
           } as any}
         >
 
+          <div className="my-8 flex items-center gap-3">
+            <div className="flex-1 h-0.5 bg-gray-200" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Admin access</span>
+            <div className="flex-1 h-0.5 bg-gray-200" />
+          </div>
+
           {squareRedirectUri && (
             <div className="mb-6">
               <button
@@ -177,7 +183,7 @@ const LoginScreen: React.FC = () => {
             <button
               type="submit"
               disabled={stylistLoading}
-              className="w-full font-black py-4 rounded-2xl border-4 border-gray-950 uppercase tracking-widest text-sm shadow-lg bg-gray-950 text-white transition-colors hover:bg-white hover:text-gray-950"
+              className="blueprint-button font-black uppercase tracking-widest"
             >
               {stylistLoading ? 'Signing in...' : 'Sign in as stylist'}
             </button>
