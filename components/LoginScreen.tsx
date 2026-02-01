@@ -125,17 +125,7 @@ const LoginScreen: React.FC = () => {
             <div className="mb-6">
               <button
                 onClick={startSquareOAuth}
-                className="blueprint-button font-black"
-                style={{
-                  "@media (max-width: 991px)": {
-                    borderStyle: "dashed",
-                    borderWidth: "1px",
-                    fontWeight: "400",
-                    fontSize: "27px",
-                    borderRadius: "338px",
-                    overflow: "hidden",
-                  },
-                } as any}
+                className="blueprint-button font-black square-oauth-button"
               >
                 Login with Square
               </button>
