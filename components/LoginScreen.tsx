@@ -106,13 +106,9 @@ const LoginScreen: React.FC = () => {
         </div>
 
         <div
-          className="p-10"
+          className="p-10 login-screen-content"
           style={{
             backgroundColor: `rgba(${parseInt(branding.primaryColor.slice(1, 3), 16)}, ${parseInt(branding.primaryColor.slice(3, 5), 16)}, ${parseInt(branding.primaryColor.slice(5, 7), 16)}, 0.08)`,
-            "@media (max-width: 991px)": {
-              marginTop: "-3px",
-              paddingTop: "2px",
-            },
           } as any}
         >
 
