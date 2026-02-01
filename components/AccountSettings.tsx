@@ -68,9 +68,9 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onLogout, subti
                                   updatePushAlertsEnabled(!pushAlertsEnabled);
                                   saveAll();
                                 }}
-                                className={`w-12 h-6 rounded-full relative transition-colors ${pushAlertsEnabled ? 'bg-brand-secondary' : 'bg-gray-200'}`}
+                                className={`w-[64px] h-[32px] rounded-full relative transition-colors ${pushAlertsEnabled ? 'bg-brand-secondary' : 'bg-[#ecf4f8]'}`}
                             >
-                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${pushAlertsEnabled ? 'transform translate-x-7' : 'transform translate-x-1'}`}></div>
+                                <div className={`absolute top-[2px] left-[2px] w-[39px] h-[24px] bg-[#0e1d25] border-[2px] border-[#ecf4f833] rounded-full shadow-[0_6px_16px_0_rgba(14,29,37,0.18)] transition-all duration-[180ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] max-[991px]:bg-white max-[991px]:border-[11px] max-[991px]:border-white/20 ${pushAlertsEnabled ? 'translate-x-[21px]' : 'translate-x-[4px]'}`}></div>
                             </button>
                         </div>
                     </div>
