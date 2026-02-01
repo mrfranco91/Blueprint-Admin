@@ -19,8 +19,15 @@ import './styles/accessibility.css';
 /* App Content (Auth-aware UI)   */
 /* ----------------------------- */
 const AppContent: React.FC = () => {
-  const { user, logout, authInitialized } = useAuth();
+  const { user, login, logout, authInitialized } = useAuth();
   const { needsSquareConnect } = useSettings();
+
+  // TEMPORARY: Bypass login for development review
+  React.useEffect(() => {
+    if (authInitialized && !user) {
+      login('admin');
+    }
+  }, [authInitialized, user, login]);
 
   if (!authInitialized) {
     return (
@@ -31,7 +38,12 @@ const AppContent: React.FC = () => {
   }
 
   if (!user) {
-    return <LoginScreen />;
+    // Show spinner while auto-login happens instead of LoginScreen
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin h-10 w-10 border-4 border-gray-300 border-t-transparent rounded-full" />
+      </div>
+    );
   }
 
   if (needsSquareConnect) {

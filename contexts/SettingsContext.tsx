@@ -321,6 +321,14 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     };
   }, []);
 
+  // Apply text size to body
+  useEffect(() => {
+    document.body.classList.remove('text-size-s', 'text-size-m', 'text-size-l');
+    if (textSize && textSize !== 'M') {
+      document.body.classList.add(`text-size-${textSize.toLowerCase()}`);
+    }
+  }, [textSize]);
+
   // Updaters
   const updateServices = (v: Service[]) => setServices(v);
   const updateLevels = (v: StylistLevel[]) => setLevels(v);
