@@ -47,7 +47,7 @@ const LoginScreen: React.FC = () => {
       style={{ backgroundColor: branding.primaryColor }}
     >
       <div
-        className="bg-white rounded-[40px] shadow-2xl w-full max-w-md overflow-hidden relative border-4 border-gray-950"
+        className="bg-white rounded-[80px] shadow-2xl w-full max-w-md overflow-hidden relative border-4 border-gray-950"
         style={{
           "@media (max-width: 991px)": {
             maxWidth: "656px",
@@ -67,6 +67,7 @@ const LoginScreen: React.FC = () => {
               paddingTop: "63px",
               display: "flex",
               flexDirection: "column",
+              paddingBottom: "23px",
             },
           } as any}
         >
@@ -98,6 +99,7 @@ const LoginScreen: React.FC = () => {
                 fontWeight: "400",
                 textAlign: "left",
                 margin: "0 auto 0 27px",
+                marginBottom: "-23px",
               },
             } as any}
           >
@@ -106,41 +108,38 @@ const LoginScreen: React.FC = () => {
         </div>
 
         <div
-          className="p-10"
+          className="p-10 login-screen-content"
           style={{
             backgroundColor: `rgba(${parseInt(branding.primaryColor.slice(1, 3), 16)}, ${parseInt(branding.primaryColor.slice(3, 5), 16)}, ${parseInt(branding.primaryColor.slice(5, 7), 16)}, 0.08)`,
-            "@media (max-width: 991px)": {
-              marginTop: "-3px",
-            },
+            marginRight: "-1px",
+            padding: "8px 40px 40px",
           } as any}
         >
 
+          <div className="my-8 flex items-center gap-3">
+            <div className="flex-1 h-0.5 bg-gray-200" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Admin access</span>
+            <div className="flex-1 h-0.5 bg-gray-200" />
+          </div>
+
           {squareRedirectUri && (
-            <div className="mb-6">
+            <div className="mb-6" style={{ marginBottom: "16px" } as any}>
               <button
                 onClick={startSquareOAuth}
-                className="blueprint-button font-black"
-                style={{
-                  "@media (max-width: 991px)": {
-                    borderStyle: "dashed",
-                    borderWidth: "1px",
-                    fontWeight: "400",
-                    fontSize: "27px",
-                  },
-                } as any}
+                className="blueprint-button font-black square-oauth-button"
               >
                 Login with Square
               </button>
             </div>
           )}
 
-          <div className="my-8 flex items-center gap-3">
+          <div className="my-8 flex items-center gap-3 stylist-divider">
             <div className="flex-1 h-0.5 bg-gray-200" />
             <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Stylist access</span>
             <div className="flex-1 h-0.5 bg-gray-200" />
           </div>
 
-          <form onSubmit={handleStylistLogin} className="space-y-4">
+          <form onSubmit={handleStylistLogin} className="space-y-4 login-form">
             <div>
               <label className="block text-[9px] font-black uppercase tracking-widest mb-2 text-gray-600">
                 Stylist email
@@ -150,7 +149,7 @@ const LoginScreen: React.FC = () => {
                 value={stylistEmail}
                 onChange={(event) => setStylistEmail(event.target.value)}
                 placeholder="name@salon.com"
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl font-bold text-sm focus:outline-none focus:border-gray-950"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl font-bold text-sm focus:outline-none focus:border-gray-950 stylist-email-input"
                 autoComplete="email"
                 disabled={stylistLoading}
               />
@@ -164,7 +163,7 @@ const LoginScreen: React.FC = () => {
                 value={stylistPassword}
                 onChange={(event) => setStylistPassword(event.target.value)}
                 placeholder="Your password"
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl font-bold text-sm focus:outline-none focus:border-gray-950"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl font-bold text-sm focus:outline-none focus:border-gray-950 stylist-password-input"
                 autoComplete="current-password"
                 disabled={stylistLoading}
               />
@@ -177,11 +176,11 @@ const LoginScreen: React.FC = () => {
             <button
               type="submit"
               disabled={stylistLoading}
-              className="w-full font-black py-4 rounded-2xl border-4 border-gray-950 uppercase tracking-widest text-sm shadow-lg bg-gray-950 text-white"
+              className="blueprint-button font-black stylist-signin-button"
             >
               {stylistLoading ? 'Signing in...' : 'Sign in as stylist'}
             </button>
-            <p className="text-xs text-gray-500 font-semibold text-center">
+            <p className="text-xs text-gray-500 font-semibold text-center help-text">
               Invited stylists can set a password from the invite email, then sign in here.
             </p>
           </form>

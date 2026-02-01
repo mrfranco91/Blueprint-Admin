@@ -99,3 +99,94 @@
 .sync-button:active:not(:disabled) {
   background-color: rgba(11, 52, 88, 0.8);
 }
+
+/* Square OAuth Button Responsive Styles */
+.square-oauth-button {
+  border: 4px solid rgb(15, 76, 129) !important;
+  border-radius: 338px !important;
+}
+
+@media (max-width: 991px) {
+  .square-oauth-button {
+    border-style: solid !important;
+    border-width: 4px !important;
+    font: 600 21px/24.5px Raleway, sans-serif;
+    font-size: 16px !important;
+    line-height: 14.5px;
+  }
+}
+
+/* Stylist Sign In Button Responsive Styles */
+.stylist-signin-button {
+  border: 4px solid rgb(15, 76, 129) !important;
+  border-radius: 338px !important;
+}
+
+@media (max-width: 991px) {
+  .stylist-signin-button {
+    border-style: solid !important;
+    border-width: 4px !important;
+    font: 600 21px/24.5px Raleway, sans-serif;
+    font-size: 16px !important;
+    line-height: 14.5px;
+  }
+}
+
+/* Stylist Login Form Inputs */
+.stylist-email-input,
+.stylist-password-input {
+  border-radius: 338px !important;
+  border: 2px solid rgb(55, 65, 81) !important;
+}
+
+@media (max-width: 991px) {
+  .stylist-email-input,
+  .stylist-password-input {
+    border-style: solid !important;
+    border-width: 1px !important;
+  }
+}
+
+/* Help Text Responsive Styles */
+.help-text {
+  max-width: 100%;
+}
+
+@media (max-width: 991px) {
+  .help-text {
+    max-width: 230px;
+    margin: 0 auto;
+  }
+}
+
+/* Login Form Responsive Styles */
+.login-form {
+  display: block;
+}
+
+@media (max-width: 991px) {
+  .login-form {
+    display: flex !important;
+    flex-direction: column;
+  }
+}
+
+/* Stylist Access Divider Responsive */
+.stylist-divider {
+  margin: 32px 0;
+}
+
+@media (max-width: 991px) {
+  .stylist-divider {
+    justify-content: center;
+    align-items: center;
+    margin: -8px 0 14px;
+  }
+}
+
+/* Login Screen Content Responsive Padding */
+@media (max-width: 991px) {
+  .login-screen-content {
+    padding-top: 2px;
+  }
+}
