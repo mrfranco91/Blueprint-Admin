@@ -22,15 +22,6 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onLogout, subti
 
   const isMockUser = !!user?.isMock;
 
-  // Square OAuth - use server-side OAuth flow to ensure state is securely stored
-  const squareRedirectUri = (import.meta as any).env.VITE_SQUARE_REDIRECT_URI;
-
-  const startSquareOAuth = () => {
-    if (!squareRedirectUri) return;
-    // Use server endpoint to initiate OAuth - ensures state is securely stored in HTTP-only cookie
-    window.location.href = '/api/square/oauth/start';
-  };
-
   return (
     <div className="p-4 flex flex-col h-full bg-gray-50 overflow-y-auto pb-48">
         <h1 className="text-3xl font-black tracking-tighter px-2 pt-2 mb-8" style={{ color: ensureAccessibleColor(branding.accentColor, '#F9FAFB', '#1E3A8A') }}>Account</h1>
@@ -45,23 +36,6 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onLogout, subti
                 <h2 className="text-2xl font-black text-gray-950 tracking-tighter leading-none mb-2">{user?.name}</h2>
                 <p className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: ensureAccessibleColor(branding.primaryColor, '#FFFFFF', '#BE123C') }}>{subtitle}</p>
             </div>
-
-            {squareRedirectUri && (
-              <div className="bg-white p-6 rounded-[32px] border-4 border-gray-950 shadow-sm">
-                <h3 className="font-black text-sm tracking-widest uppercase text-gray-400 mb-4">
-                  Square Connection
-                </h3>
-                <p className="text-xs font-bold text-gray-700 leading-relaxed mb-4">
-                  Connect this Pro/Admin app to your Square account via OAuth.
-                </p>
-                <button
-                  onClick={startSquareOAuth}
-                  className="w-full bg-gray-950 text-white font-black py-3 rounded-2xl border-4 border-gray-950 shadow-lg"
-                >
-                  Connect Square
-                </button>
-              </div>
-            )}
 
             <div className="bg-white p-6 rounded-[32px] border-4 border-gray-100 shadow-sm space-y-6">
                 <div>
