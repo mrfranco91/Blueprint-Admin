@@ -118,7 +118,7 @@
 
 /* Stylist Sign In Button Responsive Styles */
 .stylist-signin-button {
-  border: 1px dashed rgb(15, 76, 129) !important;
+  border: 4px solid rgb(15, 76, 129) !important;
   border-radius: 338px !important;
 }
 
