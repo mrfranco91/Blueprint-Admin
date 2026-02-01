@@ -136,7 +136,7 @@
 .stylist-email-input,
 .stylist-password-input {
   border-radius: 338px !important;
-  border: 1px dashed rgb(15, 76, 129) !important;
+  border: 2px solid rgb(55, 65, 81) !important;
 }
 
 /* Login Screen Content Responsive Padding */
