@@ -249,8 +249,8 @@ const StylistDashboard: React.FC<StylistDashboardProps> = ({ onLogout, role: pro
               </div>
           );
           case 'team': return <AdminDashboard role="admin" />;
-          case 'settings': return <AdminDashboard role="admin" />;
-          case 'plans': 
+          case 'settings': return <AccountSettings user={user} onLogout={onLogout} subtitle="Stylist Account" />;
+          case 'plans':
               if (_step === 'select-client') return <SelectClientStep clients={globalClients} onSelect={(c) => { setActiveClient(c); setStep('select-services'); }} onBack={() => { setStep('idle'); setActiveTab('dashboard'); }} />;
               if (_step === 'select-services') return <SelectServicesStep availableServices={availableServices} onNext={(ids) => { setSelectedServiceIds(ids); setStep('set-dates'); }} onBack={() => setStep('idle')} />;
               if (_step === 'set-dates') return <SetDatesStep client={activeClient!} selectedServices={selectedServices} onNext={(d) => { setPlanDetails(d); setStep('set-frequency'); }} planDetails={planDetails} onBack={() => setStep('select-services')} />;
