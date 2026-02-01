@@ -98,6 +98,7 @@ const LoginScreen: React.FC = () => {
                 fontWeight: "400",
                 textAlign: "left",
                 margin: "0 auto 0 27px",
+                marginBottom: "-23px",
               },
             } as any}
           >
