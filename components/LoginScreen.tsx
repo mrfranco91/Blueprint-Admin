@@ -150,7 +150,7 @@ const LoginScreen: React.FC = () => {
                 value={stylistEmail}
                 onChange={(event) => setStylistEmail(event.target.value)}
                 placeholder="name@salon.com"
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl font-bold text-sm focus:outline-none focus:border-gray-950"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl font-bold text-sm focus:outline-none focus:border-gray-950 stylist-email-input"
                 autoComplete="email"
                 disabled={stylistLoading}
               />
@@ -164,7 +164,7 @@ const LoginScreen: React.FC = () => {
                 value={stylistPassword}
                 onChange={(event) => setStylistPassword(event.target.value)}
                 placeholder="Your password"
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl font-bold text-sm focus:outline-none focus:border-gray-950"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl font-bold text-sm focus:outline-none focus:border-gray-950 stylist-password-input"
                 autoComplete="current-password"
                 disabled={stylistLoading}
               />
