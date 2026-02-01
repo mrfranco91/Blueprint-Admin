@@ -123,11 +123,6 @@ const LoginScreen: React.FC = () => {
               <button
                 onClick={startSquareOAuth}
                 className="blueprint-button font-black square-oauth-button"
-                style={{
-                  borderRadius: "338px",
-                  border: "1px dashed rgb(15, 76, 129)",
-                  overflow: "hidden",
-                } as any}
               >
                 Login with Square
               </button>
