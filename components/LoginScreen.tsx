@@ -135,12 +135,7 @@ const LoginScreen: React.FC = () => {
             <div className="flex-1 h-0.5 bg-gray-200" />
           </div>
 
-          <form onSubmit={handleStylistLogin} className="space-y-4" style={{
-            "@media (max-width: 991px)": {
-              display: "flex",
-              flexDirection: "column",
-            },
-          } as any}>
+          <form onSubmit={handleStylistLogin} className="space-y-4 login-form">
             <div>
               <label className="block text-[9px] font-black uppercase tracking-widest mb-2 text-gray-600">
                 Stylist email
