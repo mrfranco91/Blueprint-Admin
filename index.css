@@ -2,7 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap');
 
 /* =========================================================
-   DESIGN TOKENS — SOURCE OF TRUTH
+   DESIGN TOKENS — SOURCE OF TRUTH (accessible)
    Palette base: sky-reflection
    Font: Quicksand
 ========================================================= */
@@ -58,9 +58,25 @@
   --dur-fast: 120ms;
   --dur-med: 180ms;
   --press-y: 1px;
+
+  /* ---------------------------------------------------------
+     Back-compat aliases (IMPORTANT)
+     Your existing Tailwind classes like bg-brand-primary rely
+     on these Tailwind v4 CSS variables.
+  --------------------------------------------------------- */
+  --color-brand-primary: var(--brand);
+  --color-brand-secondary: #295770;   /* sky-reflection-700 */
+  --color-brand-accent: #8fbdd6;      /* sky-reflection-300 (toggle vibe) */
+  --color-brand-accent-dark: #1c3a4a; /* sky-reflection-800 */
+  --color-brand-bg: var(--bg);
+
+  /* Accessible text colors (keep names) */
+  --text-on-primary: #ecf4f8;
+  --text-on-secondary: #ecf4f8;
+  --text-on-accent: #0e1d25;
+  --text-on-light: var(--text);
 }
 
-/* DARK MODE */
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #0a141a;
@@ -79,6 +95,18 @@
     --interactive-bg: #ecf4f8;
     --interactive-text: #0a141a;
     --interactive-border: #377495;
+
+    /* Keep Tailwind v4 variable names working in dark mode */
+    --color-brand-primary: var(--brand);
+    --color-brand-secondary: #377495;
+    --color-brand-accent: #6aa7c8;
+    --color-brand-accent-dark: #ecf4f8;
+    --color-brand-bg: var(--bg);
+
+    --text-on-primary: #0a141a;
+    --text-on-secondary: #0a141a;
+    --text-on-accent: #0a141a;
+    --text-on-light: #ecf4f8;
   }
 }
 
@@ -93,7 +121,8 @@ html, body {
 }
 
 /* =========================================================
-   BUTTONS — ON BRAND, MATCH TOGGLES
+   OPTIONAL NEW “SYSTEM” CLASSES
+   (won’t break anything if unused yet)
 ========================================================= */
 
 .btn {
@@ -118,37 +147,39 @@ html, body {
     box-shadow var(--dur-med) var(--ease);
 }
 
-/* Primary button */
 .btn--primary {
   background: var(--brand);
   border-color: var(--brand-hover);
   color: var(--interactive-text);
 }
 
-/* Hover = near-invert */
 .btn:hover {
   background: var(--interactive-bg);
   color: var(--interactive-text);
   border-color: var(--interactive-border);
 }
 
-/* Press */
 .btn:active {
   transform: translateY(var(--press-y));
   box-shadow: var(--shadow-1);
 }
 
 /* =========================================================
-   TOGGLE — MATCHES BUTTON LANGUAGE
+   TOGGLES — matches the spec you pasted
+   Works two ways:
+   1) Use class .toggle on a button/div
+   2) Auto-targets your existing Tailwind toggle pattern:
+      button.w-12.h-6.rounded-full.relative  (common)
 ========================================================= */
 
-.toggle {
+.toggle,
+button.w-12.h-6.rounded-full.relative {
   position: relative;
   width: 64px;
   height: 28px;
   border-radius: var(--r-pill);
-  background: var(--surface-2);
-  border: 2px solid var(--border-strong);
+  background: var(--color-brand-accent); /* close to your #8ABAD3 */
+  border: 2px solid var(--border-strong); /* never blends */
   box-shadow: var(--shadow-1);
   cursor: pointer;
 
@@ -159,12 +190,12 @@ html, body {
     box-shadow var(--dur-med) var(--ease);
 }
 
-/* Press */
-.toggle:active {
+.toggle:active,
+button.w-12.h-6.rounded-full.relative:active {
   transform: translateY(var(--press-y));
 }
 
-/* Knob */
+/* Knob for .toggle (pseudo-element) */
 .toggle::after {
   content: "";
   position: absolute;
@@ -183,22 +214,153 @@ html, body {
     border-color var(--dur-med) var(--ease);
 }
 
-/* ON state */
-.toggle[data-state="on"],
-.toggle[aria-checked="true"] {
-  background: var(--brand);
-  border-color: var(--brand-hover);
+/* Knob for your existing Tailwind toggle pattern:
+   <button class="w-12 h-6 rounded-full relative ...">
+     <div class="absolute top-1 w-4 h-4 ..."></div>
+   </button>
+*/
+button.w-12.h-6.rounded-full.relative > div.absolute.top-1.w-4.h-4 {
+  top: 2px !important;
+  left: 2px !important;
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: var(--r-pill) !important;
+  background: #ffffff !important;
+  border: 2px solid rgba(14, 29, 37, 0.12) !important;
+  box-shadow: 0 6px 16px rgba(14, 29, 37, 0.22) !important;
+  transition: transform var(--dur-med) var(--ease), background var(--dur-med) var(--ease) !important;
 }
 
-.toggle[data-state="on"]::after,
-.toggle[aria-checked="true"]::after {
+/* ON state positioning: support aria-checked or data-state */
+.toggle[aria-checked="true"]::after,
+.toggle[data-state="on"]::after {
   transform: translateX(36px);
 }
 
-/* Dark-mode knob swap */
+button.w-12.h-6.rounded-full.relative[aria-checked="true"] > div.absolute.top-1.w-4.h-4,
+button.w-12.h-6.rounded-full.relative[data-state="on"] > div.absolute.top-1.w-4.h-4 {
+  transform: translateX(36px) !important;
+}
+
+/* Dark-mode knob swap so it stays distinct */
 @media (prefers-color-scheme: dark) {
-  .toggle::after {
-    background: var(--surface);
-    border-color: rgba(236, 244, 248, 0.2);
+  .toggle::after,
+  button.w-12.h-6.rounded-full.relative > div.absolute.top-1.w-4.h-4 {
+    background: var(--surface) !important;
+    border-color: rgba(236, 244, 248, 0.2) !important;
   }
+}
+
+/* =========================================================
+   BELOW HERE: YOUR ORIGINAL PROJECT CSS (kept)
+========================================================= */
+
+/* Tailwind Overrides for Dynamic Text Size */
+/* Small Size Setting */
+.text-size-s .text-xs { font-size: 0.6875rem; } /* ~11px */
+.text-size-s .text-sm { font-size: 0.75rem; } /* was text-xs */
+.text-size-s .text-base { font-size: 0.875rem; } /* was text-sm */
+.text-size-s .text-lg { font-size: 1rem; } /* was text-base */
+.text-size-s .text-xl { font-size: 1.125rem; } /* was text-lg */
+.text-size-s .text-2xl { font-size: 1.25rem; } /* was text-xl */
+.text-size-s .text-3xl { font-size: 1.5rem; } /* was text-2xl */
+.text-size-s .text-4xl { font-size: 1.875rem; } /* was text-3xl */
+.text-size-s .text-5xl { font-size: 2.25rem; } /* was text-4xl */
+
+/* Medium Size is Tailwind's default, no overrides needed. */
+
+/* Large Size Setting */
+.text-size-l .text-xs { font-size: 0.875rem; } /* was text-sm */
+.text-size-l .text-sm { font-size: 1rem; } /* was text-base */
+.text-size-l .text-base { font-size: 1.125rem; } /* was text-lg */
+.text-size-l .text-lg { font-size: 1.25rem; } /* was text-xl */
+.text-size-l .text-xl { font-size: 1.5rem; } /* was text-2xl */
+.text-size-l .text-2xl { font-size: 1.875rem; } /* was text-3xl */
+.text-size-l .text-3xl { font-size: 2.25rem; } /* was text-4xl */
+.text-size-l .text-4xl { font-size: 3rem; } /* was text-5xl */
+.text-size-l .text-5xl { font-size: 3.75rem; } /* was text-6xl */
+
+/* LoginScreen responsive logo */
+.login-logo {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+}
+
+@media (max-width: 991px) {
+  .login-logo {
+    width: 100%;
+    height: auto;
+  }
+}
+
+/* Blueprint Button Styles (updated to tokens, same class name) */
+.blueprint-button {
+  border: 2px solid var(--border-strong);
+  color: var(--text);
+  background-color: #ffffff;
+  font-weight: var(--fw-bold);
+  padding: 12px;
+  border-radius: var(--r-md);
+  width: 100%;
+  text-align: center;
+  cursor: pointer;
+  transition: background var(--dur-med) var(--ease),
+              color var(--dur-med) var(--ease),
+              border-color var(--dur-med) var(--ease),
+              transform var(--dur-fast) var(--ease),
+              box-shadow var(--dur-med) var(--ease);
+  font-size: 14px;
+  box-shadow: var(--shadow-1);
+}
+
+.blueprint-button:hover:not(:disabled) {
+  background: var(--interactive-bg);
+  color: var(--interactive-text);
+  border-color: var(--interactive-border);
+  box-shadow: var(--shadow-2);
+  transform: translateY(-1px);
+}
+
+.blueprint-button:active:not(:disabled) {
+  transform: translateY(var(--press-y));
+}
+
+.blueprint-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Submit Button Styles */
+.sync-button {
+  transition: background-color var(--dur-med) var(--ease), color var(--dur-med) var(--ease);
+}
+
+.sync-button:hover:not(:disabled) {
+  background-color: rgba(0, 126, 204, 0.9); /* brand-hover-ish */
+}
+
+.sync-button:active:not(:disabled) {
+  background-color: rgba(0, 126, 204, 0.8);
+}
+
+/* Square OAuth Button Responsive Styles */
+.square-oauth-button {
+  border: 4px solid var(--color-brand-secondary) !important;
+  border-radius: 338px !important;
+}
+
+@media (max-width: 991px) {
+  .square-oauth-button {
+    border-style: solid !important;
+    border-width: 4px !important;
+    font: 600 21px/24.5px Raleway, sans-serif;
+    font-size: 16px !important;
+    line-height: 14.5px;
+  }
+}
+
+/* Stylist Sign In Button Responsive Styles */
+.stylist-signin-button {
+  /* keep whatever you already had below in your file */
 }
