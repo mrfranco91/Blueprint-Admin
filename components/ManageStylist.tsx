@@ -312,12 +312,10 @@ export default function ManageStylist({ onBack }: ManageStylistProps) {
                           Default: {level.defaultPermissions[permissionKey] ? 'On' : 'Off'}
                         </p>
                       </div>
-                      <button
-                        onClick={() => handleLevelPermissionToggle(level.id, permissionKey)}
-                        className={`w-12 h-6 rounded-full relative transition-colors ${level.defaultPermissions[permissionKey] ? 'bg-brand-secondary' : 'bg-gray-200'}`}
-                      >
-                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${level.defaultPermissions[permissionKey] ? 'transform translate-x-7' : 'transform translate-x-1'}`}></div>
-                      </button>
+                      <Toggle
+                        checked={!!level.defaultPermissions[permissionKey]}
+                        onCheckedChange={() => handleLevelPermissionToggle(level.id, permissionKey)}
+                      />
                     </div>
                   ))}
                 </div>
