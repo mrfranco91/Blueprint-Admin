@@ -172,8 +172,7 @@ html, body {
 ========================================================= */
 
 /* Track */
-.toggle,
-button.w-12.h-6.rounded-full.relative {
+.toggle {
   position: relative;
   width: 64px !important;
   height: 28px !important;
@@ -190,8 +189,7 @@ button.w-12.h-6.rounded-full.relative {
     box-shadow var(--dur-med) var(--ease);
 }
 
-.toggle:active,
-button.w-12.h-6.rounded-full.relative:active {
+.toggle:active {
   transform: translateY(var(--press-y));
 }
 
@@ -212,30 +210,10 @@ button.w-12.h-6.rounded-full.relative:active {
               border-color var(--dur-med) var(--ease);
 }
 
-/* BIG pill knob — for your existing Tailwind inner div */
-button.w-12.h-6.rounded-full.relative > div.absolute.top-1.w-4.h-4 {
-  top: 2px !important;
-  left: 2px !important;
-  width: 39px !important;
-  height: 24px !important;
-  border-radius: var(--r-pill) !important;
-
-  background: #ffffff !important;
-  border: 2px solid rgba(14, 29, 37, 0.12) !important;
-  box-shadow: 0 6px 16px rgba(14, 29, 37, 0.18) !important;
-
-  /* IMPORTANT: kill any existing translate-x-* */
-  transform: translateX(0) !important;
-
-  transition: transform var(--dur-med) var(--ease),
-              background var(--dur-med) var(--ease) !important;
-}
 
 /* ON state track */
 .toggle[aria-checked="true"],
-.toggle[data-state="on"],
-button.w-12.h-6.rounded-full.relative[aria-checked="true"],
-button.w-12.h-6.rounded-full.relative[data-state="on"] {
+.toggle[data-state="on"] {
   background: var(--brand);
   border-color: var(--brand-hover);
 }
@@ -247,15 +225,10 @@ button.w-12.h-6.rounded-full.relative[data-state="on"] {
   transform: translateX(21px);
 }
 
-button.w-12.h-6.rounded-full.relative[aria-checked="true"] > div.absolute.top-1.w-4.h-4,
-button.w-12.h-6.rounded-full.relative[data-state="on"] > div.absolute.top-1.w-4.h-4 {
-  transform: translateX(21px) !important;
-}
 
 /* Dark-mode knob swap */
 @media (prefers-color-scheme: dark) {
-  .toggle::after,
-  button.w-12.h-6.rounded-full.relative > div.absolute.top-1.w-4.h-4 {
+  .toggle::after {
     background: var(--surface) !important;
     border-color: rgba(236, 244, 248, 0.20) !important;
   }
