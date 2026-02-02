@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
 import { supabase } from '../lib/supabase';
 import { ChevronLeftIcon, ChevronRightIcon } from './icons';
+import { Toggle } from './Toggle';
 import type { Stylist, StylistLevel } from '../types';
 
 interface ManageStylistProps {
