@@ -1,19 +1,19 @@
 /* Inputs must always be readable */
-input,
-textarea,
-select {
+input:not(.toggle):not([data-ui="toggle"]):not([data-ui="field"]):not(.sr-only):not([type="checkbox"]):not([type="radio"]),
+textarea:not([data-ui="field"]),
+select:not([data-ui="field"]) {
   background-color: #ffffff;
   border: 2px solid #374151; /* Dark gray border for better contrast */
   color: #1F2937; /* Ensure text color is dark enough */
 }
 
-input::placeholder,
-textarea::placeholder {
+input:not(.toggle):not([data-ui="toggle"]):not([data-ui="field"]):not(.sr-only):not([type="checkbox"]):not([type="radio"])::placeholder,
+textarea:not([data-ui="field"])::placeholder {
   color: #6B7280; /* Medium gray placeholder text */
 }
 
 /* Buttons must be visible via shape, not icon color */
-button {
+button:not(.toggle):not(.btn):not(.blueprint-button):not([data-ui="toggle"]):not([data-ui="button"]) {
   background-color: #ffffff;
   border: 2px solid #1F2937; /* Dark border for visibility */
   color: #1F2937; /* Dark text by default */
@@ -24,13 +24,4 @@ button {
   outline: 3px solid #0F4C81; /* Blueprint Classic Blue */
   outline-offset: 2px;
   box-shadow: 0 0 0 4px rgba(15, 76, 129, 0.1); /* Subtle backdrop highlight */
-}
-
-/* Disabled clarity */
-button:disabled,
-input:disabled,
-select:disabled,
-textarea:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }

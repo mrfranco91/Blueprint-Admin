@@ -172,14 +172,13 @@ html, body {
 ========================================================= */
 
 /* Track */
-.toggle,
-button.w-12.h-6.rounded-full.relative {
+.toggle {
   position: relative;
   width: 64px !important;
-  height: 28px !important;
+  height: 32px !important;
   border-radius: var(--r-pill);
-  background: var(--color-brand-accent);     /* close to your #8ABAD3 vibe */
-  border: 2px solid var(--border-strong);    /* never blends */
+  background: #8abad4;               /* Static light blue */
+  border: 2px solid var(--border-strong);
   box-shadow: var(--shadow-1);
   cursor: pointer;
 
@@ -190,8 +189,7 @@ button.w-12.h-6.rounded-full.relative {
     box-shadow var(--dur-med) var(--ease);
 }
 
-.toggle:active,
-button.w-12.h-6.rounded-full.relative:active {
+.toggle:active {
   transform: translateY(var(--press-y));
 }
 
@@ -204,59 +202,37 @@ button.w-12.h-6.rounded-full.relative:active {
   width: 39px;               /* key difference vs circle knob */
   height: 24px;
   border-radius: var(--r-pill);
-  background: #ffffff;
-  border: 2px solid rgba(14, 29, 37, 0.12);
+  background: #ffffff;       /* White Knob */
+  border: 2px solid rgba(236, 244, 248, 0.2); /* Light transparent border */
   box-shadow: 0 6px 16px rgba(14, 29, 37, 0.18);
+  transform: translateX(0);
   transition: transform var(--dur-med) var(--ease),
               background var(--dur-med) var(--ease),
               border-color var(--dur-med) var(--ease);
 }
 
-/* BIG pill knob — for your existing Tailwind inner div */
-button.w-12.h-6.rounded-full.relative > div.absolute.top-1.w-4.h-4 {
-  top: 2px !important;
-  left: 2px !important;
-  width: 39px !important;
-  height: 24px !important;
-  border-radius: var(--r-pill) !important;
 
-  background: #ffffff !important;
-  border: 2px solid rgba(14, 29, 37, 0.12) !important;
-  box-shadow: 0 6px 16px rgba(14, 29, 37, 0.18) !important;
-
-  /* IMPORTANT: kill any existing translate-x-* */
-  transform: translateX(0) !important;
-
-  transition: transform var(--dur-med) var(--ease),
-              background var(--dur-med) var(--ease) !important;
-}
-
-/* ON state track */
+/* ON state track - Static background */
 .toggle[aria-checked="true"],
-.toggle[data-state="on"],
-button.w-12.h-6.rounded-full.relative[aria-checked="true"],
-button.w-12.h-6.rounded-full.relative[data-state="on"] {
-  background: var(--brand);
-  border-color: var(--brand-hover);
+.toggle[data-state="on"] {
+  /* background removed to keep it static #8abad4 */
+  /* border-color removed to keep it static */
 }
 
 /* ON state knob movement:
-   64 - 39 - 2*2 = 21px */
+   64 - 39 - 2*2 (padding) - 2*2 (border) = 17px?
+   Inner Width: 60px. Knob: 39px. Left: 2px.
+   Target Right Gap: 2px.
+   Travel = 60 - 39 - 2 - 2 = 17px */
 .toggle[aria-checked="true"]::after,
 .toggle[data-state="on"]::after {
-  transform: translateX(21px);
+  transform: translateX(17px);
 }
 
-button.w-12.h-6.rounded-full.relative[aria-checked="true"] > div.absolute.top-1.w-4.h-4,
-button.w-12.h-6.rounded-full.relative[data-state="on"] > div.absolute.top-1.w-4.h-4 {
-  transform: translateX(21px) !important;
-}
 
 /* Dark-mode knob swap */
 @media (prefers-color-scheme: dark) {
-  .toggle::after,
-  button.w-12.h-6.rounded-full.relative > div.absolute.top-1.w-4.h-4 {
-    background: var(--surface) !important;
+  .toggle::after {
     border-color: rgba(236, 244, 248, 0.20) !important;
   }
 }

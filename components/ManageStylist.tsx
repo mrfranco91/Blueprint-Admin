@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
 import { supabase } from '../lib/supabase';
 import { ChevronLeftIcon, ChevronRightIcon } from './icons';
+import { Toggle } from './Toggle';
 import type { Stylist, StylistLevel } from '../types';
 
 interface ManageStylistProps {
@@ -213,9 +214,10 @@ export default function ManageStylist({ onBack }: ManageStylistProps) {
                   Default: {levelDefaults[permKey] ? 'On' : 'Off'}
                 </p>
               </div>
-              <button
-                onClick={() => {
-                  const nextValue = !effectivePermissions[permKey];
+              <Toggle
+                checked={!!effectivePermissions[permKey]}
+                onCheckedChange={(checked) => {
+                  const nextValue = checked;
                   const nextOverrides = { ...(editingStylist.permissionOverrides || {}) };
                   if (nextValue === levelDefaults[permKey]) {
                     delete nextOverrides[permKey];
@@ -231,10 +233,7 @@ export default function ManageStylist({ onBack }: ManageStylistProps) {
                   setEditingStylist(nextStylist);
                   updateStylists(stylists.map(s => s.id === editingStylist.id ? nextStylist : s));
                 }}
-                className={`w-12 h-6 rounded-full relative transition-colors ${effectivePermissions[permKey] ? 'bg-brand-secondary' : 'bg-gray-200'}`}
-              >
-                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${effectivePermissions[permKey] ? 'transform translate-x-7' : 'transform translate-x-1'}`}></div>
-              </button>
+              />
             </div>
           ))}
         </div>
@@ -313,12 +312,10 @@ export default function ManageStylist({ onBack }: ManageStylistProps) {
                           Default: {level.defaultPermissions[permissionKey] ? 'On' : 'Off'}
                         </p>
                       </div>
-                      <button
-                        onClick={() => handleLevelPermissionToggle(level.id, permissionKey)}
-                        className={`w-12 h-6 rounded-full relative transition-colors ${level.defaultPermissions[permissionKey] ? 'bg-brand-secondary' : 'bg-gray-200'}`}
-                      >
-                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${level.defaultPermissions[permissionKey] ? 'transform translate-x-7' : 'transform translate-x-1'}`}></div>
-                      </button>
+                      <Toggle
+                        checked={!!level.defaultPermissions[permissionKey]}
+                        onCheckedChange={() => handleLevelPermissionToggle(level.id, permissionKey)}
+                      />
                     </div>
                   ))}
                 </div>
