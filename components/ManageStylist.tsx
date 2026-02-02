@@ -214,9 +214,10 @@ export default function ManageStylist({ onBack }: ManageStylistProps) {
                   Default: {levelDefaults[permKey] ? 'On' : 'Off'}
                 </p>
               </div>
-              <button
-                onClick={() => {
-                  const nextValue = !effectivePermissions[permKey];
+              <Toggle
+                checked={!!effectivePermissions[permKey]}
+                onCheckedChange={(checked) => {
+                  const nextValue = checked;
                   const nextOverrides = { ...(editingStylist.permissionOverrides || {}) };
                   if (nextValue === levelDefaults[permKey]) {
                     delete nextOverrides[permKey];
@@ -232,10 +233,7 @@ export default function ManageStylist({ onBack }: ManageStylistProps) {
                   setEditingStylist(nextStylist);
                   updateStylists(stylists.map(s => s.id === editingStylist.id ? nextStylist : s));
                 }}
-                className={`w-12 h-6 rounded-full relative transition-colors ${effectivePermissions[permKey] ? 'bg-brand-secondary' : 'bg-gray-200'}`}
-              >
-                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${effectivePermissions[permKey] ? 'transform translate-x-7' : 'transform translate-x-1'}`}></div>
-              </button>
+              />
             </div>
           ))}
         </div>
