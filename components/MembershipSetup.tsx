@@ -76,9 +76,10 @@ export default function MembershipSetup({ onBack }: MembershipSetupProps) {
               <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">Memberships</p>
               <p className="text-sm font-black text-gray-900">Offer memberships from projected yearly totals.</p>
             </div>
-            <button onClick={handleMembershipToggle} className={`w-12 h-6 rounded-full relative transition-colors ${membershipConfig.enabled ? 'bg-brand-secondary' : 'bg-gray-200'}`}>
-              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${membershipConfig.enabled ? 'transform translate-x-7' : 'transform translate-x-1'}`}></div>
-            </button>
+            <Toggle
+              checked={membershipConfig.enabled}
+              onCheckedChange={handleMembershipToggle}
+            />
           </div>
           <p className="text-xs font-bold text-gray-500 mt-4">Membership pricing is based on the monthly average of the client’s projected yearly spend.</p>
         </div>
