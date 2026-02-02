@@ -197,8 +197,8 @@ html, body {
 .toggle::after {
   content: "";
   position: absolute;
-  top: 2px;
-  left: 2px;
+  top: 4px;
+  left: 4px;
   width: 39px;               /* key difference vs circle knob */
   height: 24px;
   border-radius: var(--r-pill);
@@ -220,10 +220,10 @@ html, body {
 }
 
 /* ON state knob movement:
-   64 - 39 - 2*2 = 21px */
+   64 - 39 - 2*4 = 17px */
 .toggle[aria-checked="true"]::after,
 .toggle[data-state="on"]::after {
-  transform: translateX(21px);
+  transform: translateX(17px);
 }
 
 
