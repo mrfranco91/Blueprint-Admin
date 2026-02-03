@@ -302,7 +302,7 @@ export default function ManageStylist({ onBack }: ManageStylistProps) {
                       type="color"
                       value={level.color}
                       onChange={(event) => handleLevelUpdate(level.id, { color: event.target.value })}
-                      className="w-full h-12 rounded-xl cursor-pointer"
+                      className="w-full h-12 px-4 py-3 border-2 border-gray-200 rounded-[87px] cursor-pointer font-bold text-sm text-[#9b9b9b]"
                     />
                   </div>
                 </div>
