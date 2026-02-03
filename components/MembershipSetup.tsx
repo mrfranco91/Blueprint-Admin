@@ -95,7 +95,7 @@ export default function MembershipSetup({ onBack }: MembershipSetupProps) {
 
           <div className="space-y-4">
             {membershipConfig.tiers.length === 0 && (
-              <div className="p-4 rounded-2xl border-2 border-dashed border-gray-200 text-xs font-bold text-gray-400 text-center">
+              <div className="p-4 rounded-[247px] border-2 border-dashed border-gray-200 text-xs font-bold text-gray-400 text-center overflow-hidden">
                 No membership tiers yet. Add your first tier to get started.
               </div>
             )}
