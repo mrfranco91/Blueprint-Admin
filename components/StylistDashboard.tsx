@@ -176,7 +176,7 @@ const StylistDashboard: React.FC<StylistDashboardProps> = ({ onLogout, role: pro
                     <p className="text-gray-500 font-black text-sm uppercase tracking-widest mt-1">Stylist Dashboard</p>
                 </div>
                 <img
-                    src="https://cdn.builder.io/api/v1/image/assets%2F8d6a989189ff4d9e8633804d5d0dbd86%2Ff696039a46fe41c5b3ed739d192f7f66"
+                    src="https://cdn.builder.io/api/v1/image/assets%2F8d6a989189ff4d9e8633804d5d0dbd86%2F786cde548aac4b0cbd77b44f1bb4c94e"
                     alt="Favicon"
                     className="w-16 h-16 object-cover"
                 />
@@ -209,7 +209,7 @@ const StylistDashboard: React.FC<StylistDashboardProps> = ({ onLogout, role: pro
                 </div>
             </div>
             <div className="my-8 space-y-3">
-                <button onClick={() => { setActiveTab('plans'); setStep('select-client'); }} className="w-full bg-brand-accent text-white font-black py-5 px-6 rounded-2xl shadow-lg hover:shadow-xl flex items-center justify-center space-x-3 active:scale-95 transition-all border-4 border-gray-950">
+                <button onClick={() => { setActiveTab('plans'); setStep('select-client'); }} className="w-full bg-brand-accent text-white font-black py-5 px-6 rounded-[263px] shadow-lg hover:shadow-xl flex items-center justify-center space-x-3 active:scale-95 transition-all border-4 border-gray-950 overflow-hidden">
                     <PlusIcon className="w-6 h-6" />
                     <span>New Roadmap</span>
                 </button>

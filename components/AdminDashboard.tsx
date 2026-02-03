@@ -175,7 +175,7 @@ export default function AdminDashboard({ role }: { role: UserRole }) {
   const renderPlans = () => (
     <div className="p-6 bg-gradient-to-b from-gray-50 to-white min-h-screen">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-4xl font-black text-brand-accent tracking-tighter">Plans</h1>
+        <h1 className="text-4xl font-black text-black tracking-tighter">Plans</h1>
         <button onClick={() => setIsCreatingPlan(true)} className="bg-brand-accent text-white px-8 py-3 rounded-2xl font-black text-sm active:scale-95 transition-transform shadow-lg hover:shadow-xl">+ NEW PLAN</button>
       </div>
       <div className="space-y-4">
