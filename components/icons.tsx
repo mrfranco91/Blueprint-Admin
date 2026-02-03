@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 // FIX: Added style prop to allow dynamic coloring, resolving TypeScript errors in components using this icon.
@@ -10,7 +9,12 @@ export const CalendarIcon: React.FC<{ className?: string; style?: React.CSSPrope
 
 export const UsersIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197" />
+    <circle cx="12" cy="6" r="3" strokeWidth={1.8} />
+    <circle cx="5.5" cy="9" r="2.5" strokeWidth={1.8} />
+    <circle cx="18.5" cy="9" r="2.5" strokeWidth={1.8} />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 20v-1.2c0-3 3.5-5.4 8-5.4s8 2.4 8 5.4V20" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M2 20v-0.6c0-2.2 2.4-4 5.4-4" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M22 20v-0.6c0-2.2-2.4-4-5.4-4" />
   </svg>
 );
 
