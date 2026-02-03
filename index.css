@@ -215,8 +215,8 @@ html, body {
 /* ON state track - Brand color */
 .toggle[aria-checked="true"],
 .toggle[data-state="on"] {
-  background: var(--brand);
-  border-color: var(--brand-hover);
+  background: #8abad4;
+  border-color: #377495;
 }
 
 /* ON state knob movement:
