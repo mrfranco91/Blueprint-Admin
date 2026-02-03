@@ -209,7 +209,7 @@ const StylistDashboard: React.FC<StylistDashboardProps> = ({ onLogout, role: pro
                 </div>
             </div>
             <div className="my-8 space-y-3">
-                <button onClick={() => { setActiveTab('plans'); setStep('select-client'); }} className="w-full bg-brand-accent text-white font-black py-5 px-6 rounded-2xl shadow-lg hover:shadow-xl flex items-center justify-center space-x-3 active:scale-95 transition-all border-4 border-gray-950">
+                <button onClick={() => { setActiveTab('plans'); setStep('select-client'); }} className="w-full bg-brand-accent text-white font-black py-5 px-6 rounded-[263px] shadow-lg hover:shadow-xl flex items-center justify-center space-x-3 active:scale-95 transition-all border-4 border-gray-950 overflow-hidden">
                     <PlusIcon className="w-6 h-6" />
                     <span>New Roadmap</span>
                 </button>
