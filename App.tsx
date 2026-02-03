@@ -1,4 +1,5 @@
 import React from 'react';
+import { useEffect } from 'react';
 import type { UserRole } from './types';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 
