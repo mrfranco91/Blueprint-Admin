@@ -292,7 +292,7 @@ export default function ManageStylist({ onBack }: ManageStylistProps) {
                       min={1}
                       value={level.order}
                       onChange={(event) => handleLevelUpdate(level.id, { order: Number(event.target.value) })}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl font-bold text-sm focus:outline-none focus:border-gray-950"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-[87px] font-bold text-sm text-[#9b9b9b] focus:outline-none focus:border-gray-950"
                     />
                   </div>
                   <div>
