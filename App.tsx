@@ -1,4 +1,5 @@
 import React from 'react';
+import { useEffect } from 'react';
 import type { UserRole } from './types';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 
@@ -21,6 +22,15 @@ import './styles/accessibility.css';
 const AppContent: React.FC = () => {
   const { user, login, logout, authInitialized } = useAuth();
   const { needsSquareConnect } = useSettings();
+  const bypassLogin = (import.meta as any).env.VITE_BYPASS_LOGIN === '1';
+
+  useEffect(() => {
+    if (!bypassLogin || !authInitialized || user) {
+      return;
+    }
+
+    login('admin');
+  }, [authInitialized, bypassLogin, login, user]);
 
   if (!authInitialized) {
     return (
@@ -28,6 +38,18 @@ const AppContent: React.FC = () => {
         <div className="animate-spin h-10 w-10 border-4 border-gray-300 border-t-transparent rounded-full" />
       </div>
     );
+  }
+
+  if (bypassLogin) {
+    if (!user) {
+      return (
+        <div className="flex items-center justify-center h-screen">
+          <div className="animate-spin h-10 w-10 border-4 border-gray-300 border-t-transparent rounded-full" />
+        </div>
+      );
+    }
+
+    return <AdminDashboard role="admin" />;
   }
 
   if (!user) {
