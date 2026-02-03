@@ -258,7 +258,7 @@ export default function ManageStylist({ onBack }: ManageStylistProps) {
   return (
     <div className="p-6 bg-gradient-to-b from-gray-50 to-white min-h-screen">
       <button data-ui="button" onClick={onBack} className="mb-6 flex items-center text-xs font-black uppercase text-gray-500 hover:text-gray-900 transition-colors"><ChevronLeftIcon className="w-4 h-4 mr-1"/> Back</button>
-      <h2 className="text-4xl font-black text-brand-accent tracking-tighter mb-8">Team Access</h2>
+      <h2 className="text-4xl font-black text-black tracking-tighter mb-8">Team Access</h2>
       <div className="space-y-6">
         <div className="bg-white border-4 border-gray-100 rounded-3xl p-6 shadow-sm">
           <div className="flex items-center justify-between flex-wrap gap-4 mb-4">
