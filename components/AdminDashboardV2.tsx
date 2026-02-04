@@ -70,11 +70,11 @@ export default function AdminDashboardV2({ role }: { role: UserRole }) {
         </div>
         <div className="bg-white p-6 rounded-3xl border-4 border-gray-100 shadow-sm hover:shadow-md hover:border-brand-accent transition-all">
           <p className="text-[10px] text-gray-500 font-black uppercase mb-3 tracking-widest">Active Plans</p>
-          <p className="text-5xl font-black text-brand-primary">{stats.activePlansCount}</p>
+          <p className="text-5xl font-black text-black">{stats.activePlansCount}</p>
         </div>
         <div className="bg-white p-6 rounded-3xl border-4 border-gray-100 shadow-sm hover:shadow-md hover:border-brand-accent transition-all">
           <p className="text-[10px] text-gray-500 font-black uppercase mb-3 tracking-widest">Total Clients</p>
-          <p className="text-5xl font-black text-brand-primary">{clients.length}</p>
+          <p className="text-5xl font-black text-black">{clients.length}</p>
         </div>
       </div>
       <div className="bg-white p-7 rounded-3xl border-4 border-gray-100 shadow-sm hover:shadow-md transition-shadow mb-6">
