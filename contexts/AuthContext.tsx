@@ -38,9 +38,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       // AUTHENTICATED: do not clear user due to missing metadata
       const businessName = authUser.user_metadata?.business_name;
-      const role = (authUser.user_metadata?.role as UserRole) || 'admin';
+      // Force 'admin' role if not explicitly 'stylist', OR if it's a square-oauth user
+      const isSquareOAuthUser = authUser.email?.includes('@square-oauth.blueprint');
+      const role = (isSquareOAuthUser || (authUser.user_metadata?.role as UserRole)) === 'stylist' ? 'stylist' : 'admin';
 
-      console.log('[[AUTH DEBUG]] Hydrating user:', { id: authUser.id, role, metadata: authUser.user_metadata });
+      console.log('[[AUTH DEBUG]] Hydrating user:', { id: authUser.id, role, metadata: authUser.user_metadata, isSquareOAuthUser });
 
       const stylistName = authUser.user_metadata?.stylist_name || authUser.user_metadata?.name;
       const stylistId = authUser.user_metadata?.stylist_id;
