@@ -14,7 +14,7 @@ import {
 } from './icons';
 import type { UserRole, GeneratedPlan } from '../types';
 import { GOOGLE_FONTS_LIST } from '../data/fonts';
-import AccountSettings from './AccountSettings';
+import AdminSettings from './AdminSettings';
 import PlanSummaryStep from './PlanSummaryStep';
 import StylistDashboard from './StylistDashboard';
 import ManageStylist from './ManageStylist';
@@ -132,7 +132,7 @@ export default function AdminDashboard({ role }: { role: UserRole }) {
       return (
         <div className="p-6 bg-gradient-to-b from-gray-50 to-white min-h-screen">
           <button onClick={() => setActiveSettingsView('menu')} className="mb-6 flex items-center text-xs font-black uppercase text-gray-500 hover:text-gray-900 transition-colors"><ChevronLeftIcon className="w-4 h-4 mr-1"/> Back</button>
-          <AccountSettings user={user} onLogout={logout} subtitle="System Controller" />
+          <AdminSettings user={user} onLogout={logout} subtitle="System Controller" />
         </div>
       );
     }
