@@ -170,6 +170,9 @@ const StylistDashboard: React.FC<StylistDashboardProps> = ({ onLogout, role: pro
     const safeAccentColor = ensureAccessibleColor(branding.accentColor, '#F8F9FA', '#1E3A8A');
     return (
         <div className="p-6 overflow-y-auto h-full pb-24 bg-gradient-to-b from-gray-50 to-white">
+            <div className="bg-red-500 text-white p-4 font-black text-center mb-4 rounded-xl shadow-lg border-4 border-red-700 animate-pulse">
+              DEBUG: YOU ARE VIEWING THE STYLIST DASHBOARD
+            </div>
             <div className="flex justify-between items-start mb-8">
                 <div>
                     <h1 className="text-4xl font-black tracking-tighter" style={{ color: safeAccentColor }}>Welcome v2, {user?.name?.split(' ')[0]}</h1>

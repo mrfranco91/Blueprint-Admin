@@ -62,6 +62,9 @@ export default function AdminDashboardV2({ role }: { role: UserRole }) {
 
   const renderDashboard = () => (
     <div className="p-6 bg-gradient-to-b from-gray-50 to-white min-h-screen">
+      <div className="bg-green-500 text-white p-4 font-black text-center mb-4 rounded-xl shadow-lg border-4 border-green-700 animate-pulse">
+        DEBUG: YOU ARE VIEWING THE ADMIN DASHBOARD
+      </div>
       <h1 className="text-4xl font-black text-brand-accent tracking-tighter mb-8">Admin Dashboard v2</h1>
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="col-span-2 bg-gray-950 text-white p-8 rounded-[32px] border-4 border-gray-950 shadow-lg hover:shadow-xl transition-shadow">

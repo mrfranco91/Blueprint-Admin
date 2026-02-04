@@ -39,6 +39,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // AUTHENTICATED: do not clear user due to missing metadata
       const businessName = authUser.user_metadata?.business_name;
       const role = (authUser.user_metadata?.role as UserRole) || 'admin';
+
+      console.log('[[AUTH DEBUG]] Hydrating user:', { id: authUser.id, role, metadata: authUser.user_metadata });
+
       const stylistName = authUser.user_metadata?.stylist_name || authUser.user_metadata?.name;
       const stylistId = authUser.user_metadata?.stylist_id;
       const stylistLevelId = authUser.user_metadata?.level_id;
