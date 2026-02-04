@@ -4,8 +4,10 @@ import BottomNav, { Tab } from './BottomNav';
 import { useSettings } from '../contexts/SettingsContext';
 import { usePlans } from '../contexts/PlanContext';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 import {
     CheckCircleIcon,
+    UsersIcon,
     GlobeIcon,
     SettingsIcon,
     ChevronLeftIcon
@@ -13,13 +15,15 @@ import {
 import type { UserRole, GeneratedPlan } from '../types';
 import { GOOGLE_FONTS_LIST } from '../data/fonts';
 import AccountSettings from './AccountSettings';
-import PlanWizard from './PlanWizard';
+import PlanSummaryStep from './PlanSummaryStep';
+import StylistDashboard from './StylistDashboard';
+import ManageStylist from './ManageStylist';
 import MembershipSetup from './MembershipSetup';
 import { canCustomizeBranding } from '../utils/isEnterpriseAccount';
 
 export default function AdminDashboard({ role }: { role: UserRole }) {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
-  const [activeSettingsView, setActiveSettingsView] = useState<'menu' | 'branding' | 'account' | 'memberships'>('menu');
+  const [activeSettingsView, setActiveSettingsView] = useState<'menu' | 'branding' | 'account' | 'team' | 'memberships'>('menu');
   const [editingPlan, setEditingPlan] = useState<GeneratedPlan | null>(null);
   const [isCreatingPlan, setIsCreatingPlan] = useState(false);
 
@@ -58,7 +62,7 @@ export default function AdminDashboard({ role }: { role: UserRole }) {
 
   const renderDashboard = () => (
     <div className="p-6 bg-gradient-to-b from-gray-50 to-white min-h-screen">
-      <h1 className="text-4xl font-black text-brand-accent tracking-tighter mb-8">Admin Dashboard v2</h1>
+      <h1 className="text-4xl font-black text-brand-accent tracking-tighter mb-8">Admin Dashboard</h1>
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="col-span-2 bg-gray-950 text-white p-8 rounded-[32px] border-4 border-gray-950 shadow-lg hover:shadow-xl transition-shadow">
           <p className="text-sm font-black uppercase text-gray-400 mb-2 tracking-widest">Roadmap Pipeline</p>
@@ -133,17 +137,25 @@ export default function AdminDashboard({ role }: { role: UserRole }) {
       );
     }
 
+    if (activeSettingsView === 'team') {
+      return <ManageStylist onBack={() => setActiveSettingsView('menu')} />;
+    }
+
     if (activeSettingsView === 'memberships') {
       return <MembershipSetup onBack={() => setActiveSettingsView('menu')} />;
     }
 
     return (
       <div className="p-6 bg-gradient-to-b from-gray-50 to-white min-h-screen">
-        <h1 className="text-4xl font-black text-black tracking-tighter mb-8">Settings v2</h1>
+        <h1 className="text-4xl font-black text-brand-accent tracking-tighter mb-8">Settings</h1>
         <div className={`grid gap-6 mb-8 ${canCustomizeBranding(user) ? 'grid-cols-2' : 'grid-cols-1'}`}>
           <button onClick={() => setActiveSettingsView('account')} className="p-8 bg-white border-4 border-gray-100 rounded-3xl flex flex-col items-center justify-center space-y-3 hover:border-brand-accent hover:shadow-md transition-all shadow-sm">
             <SettingsIcon className="w-10 h-10 text-brand-primary"/>
             <span className="text-[10px] font-black uppercase tracking-widest">Account</span>
+          </button>
+          <button onClick={() => setActiveSettingsView('team')} className="p-8 bg-white border-4 border-gray-100 rounded-3xl flex flex-col items-center justify-center space-y-3 hover:border-brand-accent hover:shadow-md transition-all shadow-sm">
+            <UsersIcon className="w-10 h-10 text-brand-primary"/>
+            <span className="text-[10px] font-black uppercase tracking-widest">Team Access</span>
           </button>
           <button onClick={() => setActiveSettingsView('memberships')} className="p-8 bg-white border-4 border-gray-100 rounded-3xl flex flex-col items-center justify-center space-y-3 hover:border-brand-accent hover:shadow-md transition-all shadow-sm">
             <CheckCircleIcon className="w-10 h-10 text-brand-primary"/>
@@ -163,7 +175,7 @@ export default function AdminDashboard({ role }: { role: UserRole }) {
   const renderPlans = () => (
     <div className="p-6 bg-gradient-to-b from-gray-50 to-white min-h-screen">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-4xl font-black text-black tracking-tighter">Plans</h1>
+        <h1 className="text-4xl font-black text-brand-accent tracking-tighter">Plans</h1>
         <button onClick={() => setIsCreatingPlan(true)} className="bg-brand-accent text-white px-8 py-3 rounded-2xl font-black text-sm active:scale-95 transition-transform shadow-lg hover:shadow-xl">+ NEW PLAN</button>
       </div>
       <div className="space-y-4">
@@ -198,7 +210,7 @@ export default function AdminDashboard({ role }: { role: UserRole }) {
     // If creating or editing a plan, show the plan wizard
     if (isCreatingPlan || editingPlan !== undefined) {
       return (
-        <PlanWizard
+        <StylistDashboard
           role="admin"
           onLogout={() => {}}
           client={editingPlan?.client}
@@ -226,9 +238,6 @@ export default function AdminDashboard({ role }: { role: UserRole }) {
   const handleTabChange = (tab: Tab) => {
     setActiveTab(tab);
     setEditingPlan(undefined);
-    if (tab === 'settings') {
-      setActiveSettingsView('menu');
-    }
   };
 
   return (

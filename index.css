@@ -172,13 +172,14 @@ html, body {
 ========================================================= */
 
 /* Track */
-.toggle {
+.toggle,
+button.w-12.h-6.rounded-full.relative {
   position: relative;
-  width: 56px !important;
+  width: 64px !important;
   height: 28px !important;
   border-radius: var(--r-pill);
-  background: #8abad4;               /* Inactive: Light blue */
-  border: 2px solid var(--border-strong);
+  background: var(--color-brand-accent);     /* close to your #8ABAD3 vibe */
+  border: 2px solid var(--border-strong);    /* never blends */
   box-shadow: var(--shadow-1);
   cursor: pointer;
 
@@ -189,7 +190,8 @@ html, body {
     box-shadow var(--dur-med) var(--ease);
 }
 
-.toggle:active {
+.toggle:active,
+button.w-12.h-6.rounded-full.relative:active {
   transform: translateY(var(--press-y));
 }
 
@@ -199,55 +201,62 @@ html, body {
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 32px;
-  height: 20px;
+  width: 39px;               /* key difference vs circle knob */
+  height: 24px;
   border-radius: var(--r-pill);
-  background: #ffffff;       /* White Knob */
-  border: 2px solid rgba(236, 244, 248, 0.2); /* Light transparent border */
-  box-shadow: 0 4px 12px rgba(14, 29, 37, 0.18);
-  transform: translateX(0);
+  background: #ffffff;
+  border: 2px solid rgba(14, 29, 37, 0.12);
+  box-shadow: 0 6px 16px rgba(14, 29, 37, 0.18);
   transition: transform var(--dur-med) var(--ease),
               background var(--dur-med) var(--ease),
               border-color var(--dur-med) var(--ease);
 }
 
+/* BIG pill knob — for your existing Tailwind inner div */
+button.w-12.h-6.rounded-full.relative > div.absolute.top-1.w-4.h-4 {
+  top: 2px !important;
+  left: 2px !important;
+  width: 39px !important;
+  height: 24px !important;
+  border-radius: var(--r-pill) !important;
 
-/* ON state track - Brand color */
+  background: #ffffff !important;
+  border: 2px solid rgba(14, 29, 37, 0.12) !important;
+  box-shadow: 0 6px 16px rgba(14, 29, 37, 0.18) !important;
+
+  /* IMPORTANT: kill any existing translate-x-* */
+  transform: translateX(0) !important;
+
+  transition: transform var(--dur-med) var(--ease),
+              background var(--dur-med) var(--ease) !important;
+}
+
+/* ON state track */
 .toggle[aria-checked="true"],
-.toggle[data-state="on"] {
-  background: #8abad4;
-  border-color: #377495;
+.toggle[data-state="on"],
+button.w-12.h-6.rounded-full.relative[aria-checked="true"],
+button.w-12.h-6.rounded-full.relative[data-state="on"] {
+  background: var(--brand);
+  border-color: var(--brand-hover);
 }
 
 /* ON state knob movement:
-   Width 56px.
-   Border 2px on each side.
-   Knob width 32px.
-   Left 2px.
-   Available inner space: 56 - 4 = 52px.
-   Target Right Gap: 2px.
-   Travel = 52 - 32 - 2 (left) - 2 (right gap? no, math is: width - knob_width - 2*left_offset)
-   Wait, if Left is 2px.
-   56 (total) - 2 (border L) - 2 (border R) = 52 inner.
-   Knob is 32.
-   Start: 2px from left border (so 4px from total left edge?). No, top/left are relative to padding box?
-   Usually border-box.
-   If absolute inside relative.
-   Let's assume travel needs to put it 2px from right.
-   56 - 2(border) - 2(gap) - 32(knob) - 2(border) - 2(gap) ?
-   Travel = (Width - Border*2) - KnobWidth - Gap*2 ?
-   (56 - 4) - 32 - 4 = 16px?
-   Let's try 18px.
-*/
+   64 - 39 - 2*2 = 21px */
 .toggle[aria-checked="true"]::after,
 .toggle[data-state="on"]::after {
-  transform: translateX(18px);
+  transform: translateX(21px);
 }
 
+button.w-12.h-6.rounded-full.relative[aria-checked="true"] > div.absolute.top-1.w-4.h-4,
+button.w-12.h-6.rounded-full.relative[data-state="on"] > div.absolute.top-1.w-4.h-4 {
+  transform: translateX(21px) !important;
+}
 
 /* Dark-mode knob swap */
 @media (prefers-color-scheme: dark) {
-  .toggle::after {
+  .toggle::after,
+  button.w-12.h-6.rounded-full.relative > div.absolute.top-1.w-4.h-4 {
+    background: var(--surface) !important;
     border-color: rgba(236, 244, 248, 0.20) !important;
   }
 }
@@ -347,17 +356,14 @@ html, body {
 
 /* Square OAuth Button Responsive Styles */
 .square-oauth-button {
-  border: 3px solid #0f4773 !important;
-  border-radius: 97px !important;
-  color: rgba(0, 0, 0, 1);
-  margin-bottom: 16px;
-  overflow: hidden;
+  border: 4px solid var(--color-brand-secondary) !important;
+  border-radius: 338px !important;
 }
 
 @media (max-width: 991px) {
   .square-oauth-button {
     border-style: solid !important;
-    border-width: 3px !important;
+    border-width: 4px !important;
     font: 600 21px/24.5px Raleway, sans-serif;
     font-size: 16px !important;
     line-height: 14.5px;
@@ -366,17 +372,5 @@ html, body {
 
 /* Stylist Sign In Button Responsive Styles */
 .stylist-signin-button {
-  border: 3px solid #0f4773 !important;
-  border-radius: 97px !important;
-  color: rgba(0, 0, 0, 1);
-  overflow: hidden;
-}
-
-.stylist-email-input,
-.stylist-password-input {
-  border: 1px solid rgb(55, 65, 81) !important;
-  border-radius: 106px !important;
-  background-color: rgba(255, 255, 255, 1);
-  color: rgba(0, 0, 0, 1);
-  overflow: hidden;
+  /* keep whatever you already had below in your file */
 }

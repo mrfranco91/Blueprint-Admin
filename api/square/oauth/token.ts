@@ -210,7 +210,11 @@ export default async function handler(req: any, res: any) {
       throw new Error(`Failed to check existing merchant settings: ${settingsLookupError.message}`);
     }
 
-        console.log('[OAUTH TOKEN] Using standard OAuth credentials:', {
+    // Standard OAuth user credentials (merchant_id based)
+    const email = `${merchant_id}@square-oauth.blueprint`;
+    const password = merchant_id;
+
+    console.log('[OAUTH TOKEN] Using standard OAuth credentials:', {
       email,
       passwordLength: password.length,
     });

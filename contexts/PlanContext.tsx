@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import type { GeneratedPlan, PlanAppointment } from '../types';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
+import { useSettings } from './SettingsContext';
 
 interface BookingRecord {
     id: string;
@@ -34,6 +35,7 @@ export const PlanProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [bookings, setBookings] = useState<BookingRecord[]>([]);
     const [loading, setLoading] = useState(true);
     const { user } = useAuth();
+    const { stylists } = useSettings();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -57,6 +59,19 @@ export const PlanProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     console.log('Filtering for client:', user.id);
                     plansQuery = plansQuery.eq('client_id', user.id);
                     bookingsQuery = bookingsQuery.eq('client_id', user.id);
+                } else if (user?.role === 'stylist' && user.id) {
+                    const stylistId = user.stylistData?.id || user.id;
+                    const stylistPermissions = stylists.find(s => s.id === stylistId)?.permissions;
+
+                    if (stylistPermissions?.viewAllSalonPlans) {
+                        console.log('Stylist permission allows all plans');
+                    } else {
+                        // SECURITY FIX: Scope data to the logged-in stylist at the database level.
+                        // This prevents data leakage by ensuring stylists can only fetch their own data.
+                        console.log('Filtering for stylist:', stylistId);
+                        plansQuery = plansQuery.eq('plan_data->>stylistId', stylistId);
+                        bookingsQuery = bookingsQuery.eq('stylist_id', stylistId);
+                    }
                 } else {
                     console.log('Admin user - fetching all plans');
                 }
@@ -152,7 +167,7 @@ export const PlanProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         };
 
         fetchData();
-    }, [user]);
+    }, [user, stylists]);
 
     const savePlan = async (newPlan: GeneratedPlan): Promise<GeneratedPlan> => {
         console.log('savePlan called with:', newPlan);

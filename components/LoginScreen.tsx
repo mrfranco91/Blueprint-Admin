@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
 
 const LoginScreen: React.FC = () => {
   const { branding } = useSettings();
+  const [stylistEmail, setStylistEmail] = useState('');
+  const [stylistPassword, setStylistPassword] = useState('');
+  const [stylistLoading, setStylistLoading] = useState(false);
+  const [stylistError, setStylistError] = useState<string | null>(null);
 
   const squareRedirectUri = (import.meta as any).env.VITE_SQUARE_REDIRECT_URI;
 
@@ -10,6 +14,31 @@ const LoginScreen: React.FC = () => {
     // Use server-side OAuth start endpoint for secure state handling
     // Server sets state in HTTP-only cookie and redirects to Square
     window.location.href = '/api/square/oauth/start';
+  };
+
+  const handleStylistLogin = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!stylistEmail.trim() || !stylistPassword.trim()) {
+      setStylistError('Enter your email and password.');
+      return;
+    }
+
+    setStylistLoading(true);
+    setStylistError(null);
+
+    const { supabase } = await import('../lib/supabase');
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: stylistEmail.trim(),
+      password: stylistPassword,
+    });
+
+    if (signInError) {
+      setStylistError(signInError.message);
+      setStylistLoading(false);
+      return;
+    }
+
+    setStylistLoading(false);
   };
 
   return (
@@ -104,6 +133,57 @@ const LoginScreen: React.FC = () => {
             </div>
           )}
 
+          <div className="my-8 flex items-center gap-3 stylist-divider">
+            <div className="flex-1 h-0.5 bg-gray-200" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Stylist access</span>
+            <div className="flex-1 h-0.5 bg-gray-200" />
+          </div>
+
+          <form onSubmit={handleStylistLogin} className="space-y-4 login-form">
+            <div>
+              <label className="block text-[9px] font-black uppercase tracking-widest mb-2 text-gray-600">
+                Stylist email
+              </label>
+              <input
+                type="email"
+                value={stylistEmail}
+                onChange={(event) => setStylistEmail(event.target.value)}
+                placeholder="name@salon.com"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl font-bold text-sm focus:outline-none focus:border-gray-950 stylist-email-input"
+                autoComplete="email"
+                disabled={stylistLoading}
+              />
+            </div>
+            <div>
+              <label className="block text-[9px] font-black uppercase tracking-widest mb-2 text-gray-600">
+                Password
+              </label>
+              <input
+                type="password"
+                value={stylistPassword}
+                onChange={(event) => setStylistPassword(event.target.value)}
+                placeholder="Your password"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl font-bold text-sm focus:outline-none focus:border-gray-950 stylist-password-input"
+                autoComplete="current-password"
+                disabled={stylistLoading}
+              />
+            </div>
+            {stylistError && (
+              <p className="text-red-600 text-xs font-bold text-center bg-red-50 p-3 rounded-lg">
+                {stylistError}
+              </p>
+            )}
+            <button
+              type="submit"
+              disabled={stylistLoading}
+              className="blueprint-button font-black stylist-signin-button"
+            >
+              {stylistLoading ? 'Signing in...' : 'Sign in as stylist'}
+            </button>
+            <p className="text-xs text-gray-500 font-semibold text-center help-text">
+              Invited stylists can set a password from the invite email, then sign in here.
+            </p>
+          </form>
         </div>
       </div>
     </div>

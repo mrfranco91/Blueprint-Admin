@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import type { User, AppTextSize } from '../types';
 import { useSettings } from '../contexts/SettingsContext';
-import { Toggle } from './Toggle';
 import { SettingsIcon, UsersIcon, TrashIcon } from './icons';
 import { ensureAccessibleColor } from '../utils/ensureAccessibleColor';
 
@@ -50,7 +49,6 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onLogout, subti
                             <div className="flex bg-gray-100 p-1 rounded-xl">
                                 {(['S', 'M', 'L'] as AppTextSize[]).map(sz => (
                                     <button
-                                        data-ui="button"
                                         key={sz}
                                         onClick={() => {
                                           updateTextSize(sz);
@@ -65,14 +63,15 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onLogout, subti
                         </div>
                         <div className="flex justify-between items-center">
                             <span className="text-xs font-black uppercase text-gray-500 tracking-widest">Push Alerts</span>
-                            <Toggle
-                                data-ui="toggle"
-                                checked={pushAlertsEnabled}
-                                onCheckedChange={(checked) => {
-                                  updatePushAlertsEnabled(checked);
+                            <button
+                                onClick={() => {
+                                  updatePushAlertsEnabled(!pushAlertsEnabled);
                                   saveAll();
                                 }}
-                            />
+                                className={`w-12 h-6 rounded-full relative transition-colors ${pushAlertsEnabled ? 'bg-brand-secondary' : 'bg-gray-200'}`}
+                            >
+                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${pushAlertsEnabled ? 'transform translate-x-7' : 'transform translate-x-1'}`}></div>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -90,22 +89,22 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onLogout, subti
                                     Mock account — no email associated
                                 </div>
                             ) : (
-                                <input data-ui="field" type="email" readOnly value={user?.email || ''} className="w-full p-3 bg-gray-50 border-2 border-gray-200 rounded-xl font-bold text-sm outline-none" />
+                                <input type="email" readOnly value={user?.email || ''} className="w-full p-3 bg-gray-50 border-2 border-gray-200 rounded-xl font-bold text-sm outline-none" />
                             )}
                         </div>
                         {isChangingPassword ? (
                             <form onSubmit={(e) => { e.preventDefault(); handlePasswordChange(); }} className="space-y-3 pt-2 animate-fade-in">
                                  <div>
                                     <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Current Password</label>
-                                    <input data-ui="field" type="password" required className="w-full p-3 bg-white border-2 border-gray-200 rounded-xl font-bold text-sm outline-none" />
+                                    <input type="password" required className="w-full p-3 bg-white border-2 border-gray-200 rounded-xl font-bold text-sm outline-none" />
                                 </div>
                                 <div>
                                     <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">New Password</label>
-                                    <input data-ui="field" type="password" required className="w-full p-3 bg-white border-2 border-gray-200 rounded-xl font-bold text-sm outline-none" />
+                                    <input type="password" required className="w-full p-3 bg-white border-2 border-gray-200 rounded-xl font-bold text-sm outline-none" />
                                 </div>
                                 <div className="flex space-x-2 pt-2">
-                                     <button data-ui="button" type="submit" className="w-full text-white font-black py-3 rounded-xl border-b-4 border-black/20 uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-all" style={{ backgroundColor: branding.accentColor, color: ensureAccessibleColor(branding.accentColor, '#FFFFFF', '#BE123C') }}>Save</button>
-                                     <button data-ui="button" type="button" onClick={() => setIsChangingPassword(false)} className="w-full text-gray-800 font-black py-3 bg-gray-100 rounded-xl border-b-4 border-gray-300 uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-all">Cancel</button>
+                                     <button type="submit" className="w-full text-white font-black py-3 rounded-xl border-b-4 border-black/20 uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-all" style={{ backgroundColor: branding.accentColor, color: ensureAccessibleColor(branding.accentColor, '#FFFFFF', '#BE123C') }}>Save</button>
+                                     <button type="button" onClick={() => setIsChangingPassword(false)} className="w-full text-gray-800 font-black py-3 bg-gray-100 rounded-xl border-b-4 border-gray-300 uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-all">Cancel</button>
                                 </div>
                             </form>
                         ) : (
@@ -119,7 +118,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onLogout, subti
                                         <p className="text-xs text-gray-500 mt-2 px-1">This feature is disabled for the demo administrator account.</p>
                                     </>
                                 ) : (
-                                    <button data-ui="button" onClick={() => setIsChangingPassword(true)} className="w-full text-left p-3 bg-gray-100 border-2 border-gray-200 rounded-xl font-bold text-sm text-gray-900 hover:border-gray-400 transition-colors">
+                                    <button onClick={() => setIsChangingPassword(true)} className="w-full text-left p-3 bg-gray-100 border-2 border-gray-200 rounded-xl font-bold text-sm text-gray-900 hover:border-gray-400 transition-colors">
                                         Change Password
                                     </button>
                                 )}
@@ -129,7 +128,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onLogout, subti
                 </div>
             </div>
 
-            <button data-ui="button" onClick={onLogout} className="w-full font-black py-5 rounded-[28px] border-b-8 border-black/20 uppercase tracking-widest text-lg shadow-xl active:scale-95 transition-all flex items-center justify-center space-x-3" style={{ backgroundColor: branding.accentColor, color: ensureAccessibleColor(branding.accentColor, '#FFFFFF', '#FFFFFF') }}>
+            <button onClick={onLogout} className="w-full font-black py-5 rounded-[28px] border-b-8 border-black/20 uppercase tracking-widest text-lg shadow-xl active:scale-95 transition-all flex items-center justify-center space-x-3" style={{ backgroundColor: branding.accentColor, color: ensureAccessibleColor(branding.accentColor, '#FFFFFF', '#FFFFFF') }}>
                 <TrashIcon className="w-6 h-6" />
                 <span>SIGN OUT</span>
             </button>

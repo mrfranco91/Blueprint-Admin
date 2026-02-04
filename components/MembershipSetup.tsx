@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
-import { Toggle } from './Toggle';
 import { ChevronLeftIcon } from './icons';
 import type { MembershipTier } from '../types';
 
@@ -67,7 +66,7 @@ export default function MembershipSetup({ onBack }: MembershipSetupProps) {
 
   return (
     <div className="p-6 bg-gradient-to-b from-gray-50 to-white min-h-screen">
-      <button data-ui="button" onClick={onBack} className="mb-6 flex items-center text-xs font-black uppercase text-gray-500 hover:text-gray-900 transition-colors"><ChevronLeftIcon className="w-4 h-4 mr-1"/> Back</button>
+      <button onClick={onBack} className="mb-6 flex items-center text-xs font-black uppercase text-gray-500 hover:text-gray-900 transition-colors"><ChevronLeftIcon className="w-4 h-4 mr-1"/> Back</button>
       <h2 className="text-4xl font-black mb-8 text-brand-accent">Memberships</h2>
       <div className="space-y-6">
         <div className="bg-white p-6 rounded-[32px] border-4 border-gray-100 shadow-sm">
@@ -76,10 +75,9 @@ export default function MembershipSetup({ onBack }: MembershipSetupProps) {
               <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">Memberships</p>
               <p className="text-sm font-black text-gray-900">Offer memberships from projected yearly totals.</p>
             </div>
-            <Toggle
-              checked={membershipConfig.enabled}
-              onCheckedChange={handleMembershipToggle}
-            />
+            <button onClick={handleMembershipToggle} className={`w-12 h-6 rounded-full relative transition-colors ${membershipConfig.enabled ? 'bg-brand-secondary' : 'bg-gray-200'}`}>
+              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${membershipConfig.enabled ? 'transform translate-x-7' : 'transform translate-x-1'}`}></div>
+            </button>
           </div>
           <p className="text-xs font-bold text-gray-500 mt-4">Membership pricing is based on the monthly average of the client’s projected yearly spend.</p>
         </div>
@@ -90,12 +88,12 @@ export default function MembershipSetup({ onBack }: MembershipSetupProps) {
               <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">Membership tiers</p>
               <p className="text-sm font-black text-gray-900">Set minimum spend and benefits.</p>
             </div>
-            <button data-ui="button" onClick={handleAddMembershipTier} className="px-4 py-2 bg-gray-950 text-white font-black rounded-2xl text-xs uppercase tracking-widest">Add tier</button>
+            <button onClick={handleAddMembershipTier} className="px-4 py-2 bg-gray-950 text-white font-black rounded-2xl text-xs uppercase tracking-widest">Add tier</button>
           </div>
 
           <div className="space-y-4">
             {membershipConfig.tiers.length === 0 && (
-              <div className="p-4 rounded-[247px] border-2 border-dashed border-gray-200 text-xs font-bold text-gray-400 text-center overflow-hidden">
+              <div className="p-4 rounded-2xl border-2 border-dashed border-gray-200 text-xs font-bold text-gray-400 text-center">
                 No membership tiers yet. Add your first tier to get started.
               </div>
             )}
@@ -105,7 +103,6 @@ export default function MembershipSetup({ onBack }: MembershipSetupProps) {
                   <div>
                     <label className="block text-[9px] font-black uppercase tracking-widest text-gray-500 mb-2">Tier name</label>
                     <input
-                      data-ui="field"
                       type="text"
                       value={tier.name}
                       onChange={(event) => handleMembershipTierUpdate(tier.id, { name: event.target.value })}
@@ -115,7 +112,6 @@ export default function MembershipSetup({ onBack }: MembershipSetupProps) {
                   <div>
                     <label className="block text-[9px] font-black uppercase tracking-widest text-gray-500 mb-2">Minimum monthly spend</label>
                     <input
-                      data-ui="field"
                       type="number"
                       min={0}
                       value={tier.minSpend}
@@ -126,7 +122,6 @@ export default function MembershipSetup({ onBack }: MembershipSetupProps) {
                   <div>
                     <label className="block text-[9px] font-black uppercase tracking-widest text-gray-500 mb-2">Tier color</label>
                     <input
-                      data-ui="field"
                       type="color"
                       value={tier.color}
                       onChange={(event) => handleMembershipTierUpdate(tier.id, { color: event.target.value })}
@@ -144,7 +139,6 @@ export default function MembershipSetup({ onBack }: MembershipSetupProps) {
                       <div key={`${tier.id}-perk-${index}`} className="flex items-center gap-2 bg-gray-100 rounded-full px-3 py-1 text-xs font-bold text-gray-700">
                         <span>{perk}</span>
                         <button
-                          data-ui="button"
                           type="button"
                           onClick={() => handleRemoveTierPerk(tier.id, index)}
                           className="text-gray-400 hover:text-gray-900"
@@ -156,7 +150,6 @@ export default function MembershipSetup({ onBack }: MembershipSetupProps) {
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <input
-                      data-ui="field"
                       type="text"
                       value={perkDrafts[tier.id] || ''}
                       onChange={(event) => setPerkDrafts(prev => ({ ...prev, [tier.id]: event.target.value }))}
@@ -164,7 +157,6 @@ export default function MembershipSetup({ onBack }: MembershipSetupProps) {
                       className="flex-1 min-w-[200px] px-4 py-3 border-2 border-gray-200 rounded-2xl font-bold text-sm focus:outline-none focus:border-gray-950"
                     />
                     <button
-                      data-ui="button"
                       type="button"
                       onClick={() => handleAddTierPerk(tier.id)}
                       className="px-4 py-3 bg-gray-950 text-white font-black rounded-2xl text-xs uppercase tracking-widest"
@@ -178,7 +170,7 @@ export default function MembershipSetup({ onBack }: MembershipSetupProps) {
           </div>
         </div>
 
-        <button data-ui="button" onClick={saveAll} className="w-full py-4 bg-gray-950 text-white font-black rounded-2xl">SAVE MEMBERSHIP SETTINGS</button>
+        <button onClick={saveAll} className="w-full py-4 bg-gray-950 text-white font-black rounded-2xl">SAVE MEMBERSHIP SETTINGS</button>
       </div>
     </div>
   );

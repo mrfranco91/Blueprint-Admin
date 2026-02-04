@@ -1,28 +1,33 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import type { UserRole } from './types';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 
-      const response = await fetch('/api/square/has-merchant', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
-      });
+import StylistDashboard from './components/StylistDashboard';
+import AdminDashboard from './components/AdminDashboard';
+import LoginScreen from './components/LoginScreen';
+import MissingCredentialsScreen from './components/MissingCredentialsScreen';
 
-      if (!response.ok) {
-        return;
-      }
+import { SettingsProvider } from './contexts/SettingsContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { PlanProvider } from './contexts/PlanContext';
 
-      const result = await response.json();
-      if (active) {
-        setForceAdmin(!!result?.hasMerchant);
-      }
-    })();
+import { useSettings } from './contexts/SettingsContext';
 
-    return () => {
-      active = false;
-    };
-  }, [authInitialized, user?.id, user?.role]);
+import './styles/accessibility.css';
+
+/* ----------------------------- */
+/* App Content (Auth-aware UI)   */
+/* ----------------------------- */
+const AppContent: React.FC = () => {
+  const { user, login, logout, authInitialized } = useAuth();
+  const { needsSquareConnect } = useSettings();
+
+  // TEMPORARY: Bypass login for development review
+  React.useEffect(() => {
+    if (authInitialized && !user) {
+      login('admin');
+    }
+  }, [authInitialized, user, login]);
 
   if (!authInitialized) {
     return (
@@ -32,34 +37,17 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
     );
   }
 
-  if (bypassLogin) {
-    if (!user) {
-      return (
-        <div className="flex items-center justify-center h-screen">
-          <div className="animate-spin h-10 w-10 border-4 border-gray-300 border-t-transparent rounded-full" />
-        </div>
-      );
-    }
-
-    return <AdminDashboard role="admin" />;
-  }
-
   if (!user) {
-    return <LoginScreen />;
+    // Show spinner while auto-login happens instead of LoginScreen
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin h-10 w-10 border-4 border-gray-300 border-t-transparent rounded-full" />
+      </div>
+    );
   }
 
   if (needsSquareConnect) {
     return <MissingCredentialsScreen />;
-  }
-
-  const isSquareOAuthUser = user.email?.includes('@square-oauth.blueprint');
-
-  if (isSquareOAuthUser) {
-    return <AdminDashboard role="admin" />;
-  }
-
-  if (forceAdmin) {
-    return <AdminDashboard role="admin" />;
   }
 
   switch (user.role) {

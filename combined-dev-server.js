@@ -137,8 +137,6 @@ const createCombinedServer = async () => {
             handler = await vite.ssrLoadModule('./api/square/oauth/token.ts');
           } else if (pathname === '/api/square/get-token') {
             handler = await vite.ssrLoadModule('./api/square/get-token.ts');
-          } else if (pathname === '/api/square/has-merchant') {
-            handler = await vite.ssrLoadModule('./api/square/has-merchant.ts');
           } else if (pathname === '/api/square/create-session') {
             handler = await vite.ssrLoadModule('./api/square/create-session.ts');
           } else {
