@@ -38,7 +38,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       // AUTHENTICATED: do not clear user due to missing metadata
       const businessName = authUser.user_metadata?.business_name;
-      const role = (authUser.user_metadata?.role as UserRole) || 'admin';
+      // Force 'admin' role if not explicitly 'stylist', OR if it's a square-oauth user
+      const isSquareOAuthUser = authUser.email?.includes('@square-oauth.blueprint');
+
+      // FIX: The logic was flawed. We want to force admin if it IS a square user, unless they are explicitly a stylist.
+      // But actually, Square OAuth users are ALWAYS admins in this system.
+      // The previous logic: (isSquareOAuthUser || role === 'stylist') === 'stylist' ? 'stylist' : 'admin'
+      // If isSquareOAuthUser is true, then (true || ...) is true. So it returned 'stylist' if isSquareOAuthUser was true!
+      // THAT WAS THE BUG. It was forcing Square users to be STYLISTS.
+
+      let role: UserRole = 'admin';
+
+      if (isSquareOAuthUser) {
+          role = 'admin';
+      } else {
+          role = (authUser.user_metadata?.role as UserRole) || 'admin';
+      }
+
+      console.log('[[AUTH DEBUG]] Hydrating user:', { id: authUser.id, role, metadata: authUser.user_metadata, isSquareOAuthUser });
+
       const stylistName = authUser.user_metadata?.stylist_name || authUser.user_metadata?.name;
       const stylistId = authUser.user_metadata?.stylist_id;
       const stylistLevelId = authUser.user_metadata?.level_id;

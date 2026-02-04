@@ -11,8 +11,8 @@ import { useSettings } from '../contexts/SettingsContext';
 import { useAuth } from '../contexts/AuthContext';
 import { usePlans } from '../contexts/PlanContext';
 import { RefreshIcon, DocumentTextIcon, PlusIcon, CalendarIcon, ChevronRightIcon, UsersIcon, ClipboardIcon } from './icons';
-import AccountSettings from './AccountSettings';
-import AdminDashboard from './AdminDashboard';
+import StylistAccountSettings from './StylistAccountSettings';
+import AdminDashboard from './AdminDashboardV2';
 import StylistReports from './StylistReports';
 import { ensureAccessibleColor } from '../utils/ensureAccessibleColor';
 // FIX: Import BottomNav and Tab to resolve "Cannot find name" errors in the template.
@@ -249,7 +249,7 @@ const StylistDashboard: React.FC<StylistDashboardProps> = ({ onLogout, role: pro
               </div>
           );
           case 'team': return <AdminDashboard role="admin" />;
-          case 'settings': return <AccountSettings user={user} onLogout={onLogout} subtitle="Stylist Account" />;
+          case 'settings': return <StylistAccountSettings user={user} onLogout={onLogout} subtitle="Stylist Account" />;
           case 'plans':
               if (_step === 'select-client') return <SelectClientStep clients={globalClients} onSelect={(c) => { setActiveClient(c); setStep('select-services'); }} onBack={() => { setStep('idle'); setActiveTab('dashboard'); }} />;
               if (_step === 'select-services') return <SelectServicesStep availableServices={availableServices} onNext={(ids) => { setSelectedServiceIds(ids); setStep('set-dates'); }} onBack={() => setStep('idle')} />;

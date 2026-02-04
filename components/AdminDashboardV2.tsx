@@ -21,7 +21,7 @@ import ManageStylist from './ManageStylist';
 import MembershipSetup from './MembershipSetup';
 import { canCustomizeBranding } from '../utils/isEnterpriseAccount';
 
-export default function AdminDashboard({ role }: { role: UserRole }) {
+export default function AdminDashboardV2({ role }: { role: UserRole }) {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [activeSettingsView, setActiveSettingsView] = useState<'menu' | 'branding' | 'account' | 'team' | 'memberships'>('menu');
   const [editingPlan, setEditingPlan] = useState<GeneratedPlan | null>(null);
@@ -208,7 +208,7 @@ export default function AdminDashboard({ role }: { role: UserRole }) {
 
   const renderActiveTab = () => {
     // If creating or editing a plan, show the plan wizard
-    if (isCreatingPlan || editingPlan !== undefined) {
+    if (isCreatingPlan || editingPlan !== null) {
       return (
         <StylistDashboard
           role="admin"
@@ -237,7 +237,7 @@ export default function AdminDashboard({ role }: { role: UserRole }) {
 
   const handleTabChange = (tab: Tab) => {
     setActiveTab(tab);
-    setEditingPlan(undefined);
+    setEditingPlan(null);
     if (tab === 'settings') {
       setActiveSettingsView('menu');
     }
