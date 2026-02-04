@@ -151,7 +151,7 @@ export default function AdminDashboardV2({ role }: { role: UserRole }) {
         <div className={`grid gap-6 mb-8 ${canCustomizeBranding(user) ? 'grid-cols-2' : 'grid-cols-1'}`}>
           <button onClick={() => setActiveSettingsView('account')} className="p-8 bg-white border-4 border-gray-100 rounded-3xl flex flex-col items-center justify-center space-y-3 hover:border-brand-accent hover:shadow-md transition-all shadow-sm">
             <SettingsIcon className="w-10 h-10 text-brand-primary"/>
-            <span className="text-[10px] font-black uppercase tracking-widest">Admin Account Settings</span>
+            <span className="text-[10px] font-black uppercase tracking-widest">Account Settings</span>
           </button>
           <button onClick={() => setActiveSettingsView('team')} className="p-8 bg-white border-4 border-gray-100 rounded-3xl flex flex-col items-center justify-center space-y-3 hover:border-brand-accent hover:shadow-md transition-all shadow-sm">
             <UsersIcon className="w-10 h-10 text-brand-primary"/>
