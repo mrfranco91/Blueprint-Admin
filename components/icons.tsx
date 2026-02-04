@@ -13,7 +13,6 @@ export const UsersIcon: React.FC<{ className?: string }> = ({ className }) => (
     <circle cx="5.5" cy="9" r="2.5" strokeWidth={1.8} />
     <circle cx="18.5" cy="9" r="2.5" strokeWidth={1.8} />
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 20v-1.2c0-3 3.5-5.4 8-5.4s8 2.4 8 5.4V20" />
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M2 20v-0.6c0-2.2 2.4-4 5.4-4" />
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M22 20v-0.6c0-2.2-2.4-4-5.4-4" />
   </svg>
 );
