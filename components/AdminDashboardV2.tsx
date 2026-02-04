@@ -212,7 +212,7 @@ export default function AdminDashboardV2({ role }: { role: UserRole }) {
       return (
         <StylistDashboard
           role="admin"
-          onLogout={() => {}}
+          onLogout={logout}
           client={editingPlan?.client}
           existingPlan={editingPlan || undefined}
           onPlanChange={(plan) => {
