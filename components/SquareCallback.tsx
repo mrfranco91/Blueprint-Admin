@@ -33,7 +33,12 @@ export default function SquareCallback() {
           throw new Error(tokenData?.message || 'Square login failed');
         }
 
-        const { access_token: squareToken, merchant_id, supabase_session } = tokenData;
+        const {
+          access_token: squareToken,
+          merchant_id,
+          business_name,
+          supabase_session,
+        } = tokenData;
 
         if (!squareToken) {
           throw new Error('No Square access token received');
