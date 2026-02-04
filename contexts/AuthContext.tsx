@@ -94,7 +94,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         id: authUser.id,
         name: resolvedName,
         role,
-        email: authUser.email,
+        email: resolvedEmail,
         stylistData,
         isMock: false,
       });
