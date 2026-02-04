@@ -52,11 +52,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // THAT WAS THE BUG. It was forcing Square users to be STYLISTS.
 
       let role: UserRole = 'admin';
+      const metadataRole = authUser.user_metadata?.role as UserRole | undefined;
+      const stylistId = authUser.user_metadata?.stylist_id;
 
       if (isSquareOAuthUser) {
           role = 'admin';
+      } else if (metadataRole === 'stylist' && !stylistId) {
+          role = 'admin';
       } else {
-          role = (authUser.user_metadata?.role as UserRole) || 'admin';
+          role = metadataRole || 'admin';
       }
 
       console.log('[[AUTH DEBUG]] Hydrating user:', { id: authUser.id, role, metadata: authUser.user_metadata, isSquareOAuthUser });
