@@ -13,7 +13,7 @@ import { usePlans } from '../contexts/PlanContext';
 import { RefreshIcon, DocumentTextIcon, PlusIcon, CalendarIcon, ChevronRightIcon, UsersIcon, ClipboardIcon } from './icons';
 import StylistAccountSettings from './StylistAccountSettings';
 import AdminAccountSettings from './AdminAccountSettings';
-import AdminDashboard from './AdminDashboardV2';
+import AdminDashboard from './AdminDashboard';
 import StylistReports from './StylistReports';
 import { ensureAccessibleColor } from '../utils/ensureAccessibleColor';
 // FIX: Import BottomNav and Tab to resolve "Cannot find name" errors in the template.
