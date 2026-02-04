@@ -42,29 +42,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         ? `${authUser.user_metadata.merchant_id}@square-oauth.blueprint`
         : undefined;
       const resolvedEmail = authUser.email || fallbackSquareEmail;
-      // Force 'admin' role if not explicitly 'stylist', OR if it's a square-oauth user
-      const isSquareOAuthUser = resolvedEmail?.includes('@square-oauth.blueprint') || !!authUser.user_metadata?.merchant_id;
-
-      // FIX: The logic was flawed. We want to force admin if it IS a square user, unless they are explicitly a stylist.
-      // But actually, Square OAuth users are ALWAYS admins in this system.
-      // The previous logic: (isSquareOAuthUser || role === 'stylist') === 'stylist' ? 'stylist' : 'admin'
-      // If isSquareOAuthUser is true, then (true || ...) is true. So it returned 'stylist' if isSquareOAuthUser was true!
-      // THAT WAS THE BUG. It was forcing Square users to be STYLISTS.
-
-      let role: UserRole = 'admin';
       const rawMetadataRole = authUser.user_metadata?.role as UserRole | string | undefined;
       const metadataRole = rawMetadataRole === 'owner' ? 'admin' : (rawMetadataRole as UserRole | undefined);
       const metadataStylistId = authUser.user_metadata?.stylist_id;
+      const role: UserRole = metadataRole === 'stylist' && metadataStylistId ? 'stylist' : 'admin';
 
-      if (isSquareOAuthUser) {
-          role = 'admin';
-      } else if (metadataRole === 'stylist' && !metadataStylistId) {
-          role = 'admin';
-      } else {
-          role = metadataRole || 'admin';
-      }
-
-      console.log('[[AUTH DEBUG]] Hydrating user:', { id: authUser.id, role, metadata: authUser.user_metadata, isSquareOAuthUser });
+      console.log('[[AUTH DEBUG]] Hydrating user:', { id: authUser.id, role, metadata: authUser.user_metadata });
 
       const stylistName = authUser.user_metadata?.stylist_name || authUser.user_metadata?.name;
       const stylistId = authUser.user_metadata?.stylist_id;
@@ -107,61 +90,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setAuthInitialized(true);
     };
 
-    const resolveSessionUser = async (session: any) => {
-      if (!session || !supabase) {
-        return session;
-      }
-
-      try {
-        const { data, error } = await supabase.auth.getUser();
-        if (error || !data.user) {
-          return session;
-        }
-        const user = data.user;
-
-        const shouldCheckMerchant =
-          !user.user_metadata?.merchant_id &&
-          user.user_metadata?.role !== 'admin' &&
-          !user.email?.includes('@square-oauth.blueprint') &&
-          !!session.access_token;
-
-        if (shouldCheckMerchant) {
-          try {
-            const response = await fetch('/api/square/has-merchant', {
-              method: 'GET',
-              headers: {
-                'Authorization': `Bearer ${session.access_token}`,
-              },
-            });
-
-            if (response.ok) {
-              const result = await response.json();
-              if (result?.hasMerchant) {
-                return {
-                  ...session,
-                  user: {
-                    ...user,
-                    user_metadata: {
-                      ...user.user_metadata,
-                      role: 'admin',
-                      merchant_id: user.user_metadata?.merchant_id || 'square-merchant',
-                    },
-                  },
-                };
-              }
-            }
-          } catch (merchantError) {
-            console.warn('[AuthContext] Failed to confirm merchant settings:', merchantError);
-          }
-        }
-
-        return { ...session, user };
-      } catch (error) {
-        console.error('[AuthContext] Failed to fetch user profile:', error);
-        return session;
-      }
-    };
-
     if (!supabase) {
       setAuthInitialized(true);
       return;
@@ -179,9 +107,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.log('[AuthContext] Session found, user ID:', data.session.user.id);
         // Real Supabase session exists - clear any mock user
         localStorage.removeItem('mock_admin_user');
-        resolveSessionUser(data.session).then((resolvedSession) => {
-          hydrateFromSession(resolvedSession);
-        });
+        hydrateFromSession(data.session);
       } else {
         console.log('[AuthContext] No session found, checking for mock user');
         // No real session - check for mock admin session in localStorage
@@ -216,9 +142,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Real session active - clear mock user
         localStorage.removeItem('mock_admin_user');
       }
-      resolveSessionUser(session).then((resolvedSession) => {
-        hydrateFromSession(resolvedSession);
-      });
+      hydrateFromSession(session);
     });
 
     return () => {
