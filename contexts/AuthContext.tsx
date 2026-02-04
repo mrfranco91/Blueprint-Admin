@@ -106,6 +106,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setAuthInitialized(true);
     };
 
+    const resolveSessionUser = async (session: any) => {
+      if (!session || !supabase) {
+        return session;
+      }
+
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        if (error || !data.user) {
+          return session;
+        }
+        return { ...session, user: data.user };
+      } catch (error) {
+        console.error('[AuthContext] Failed to fetch user profile:', error);
+        return session;
+      }
+    };
+
     if (!supabase) {
       setAuthInitialized(true);
       return;
@@ -123,7 +140,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.log('[AuthContext] Session found, user ID:', data.session.user.id);
         // Real Supabase session exists - clear any mock user
         localStorage.removeItem('mock_admin_user');
-        hydrateFromSession(data.session);
+        resolveSessionUser(data.session).then((resolvedSession) => {
+          hydrateFromSession(resolvedSession);
+        });
       } else {
         console.log('[AuthContext] No session found, checking for mock user');
         // No real session - check for mock admin session in localStorage
@@ -158,7 +177,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Real session active - clear mock user
         localStorage.removeItem('mock_admin_user');
       }
-      hydrateFromSession(session);
+      resolveSessionUser(session).then((resolvedSession) => {
+        hydrateFromSession(resolvedSession);
+      });
     });
 
     return () => {
