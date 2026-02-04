@@ -14,11 +14,11 @@ import {
 } from './icons';
 import type { UserRole, GeneratedPlan } from '../types';
 import { GOOGLE_FONTS_LIST } from '../data/fonts';
-import AdminSettings from './AdminSettings';
+import AdminAccountSettings from './AdminAccountSettings';
 import PlanSummaryStep from './PlanSummaryStep';
 import StylistDashboard from './StylistDashboard';
-import ManageStylist from './ManageStylist';
-import MembershipSetup from './MembershipSetup';
+import TeamAccessSettings from './TeamAccessSettings';
+import MembershipSettings from './MembershipSettings';
 import { canCustomizeBranding } from '../utils/isEnterpriseAccount';
 
 export default function AdminDashboard({ role }: { role: UserRole }) {
@@ -132,26 +132,26 @@ export default function AdminDashboard({ role }: { role: UserRole }) {
       return (
         <div className="p-6 bg-gradient-to-b from-gray-50 to-white min-h-screen">
           <button onClick={() => setActiveSettingsView('menu')} className="mb-6 flex items-center text-xs font-black uppercase text-gray-500 hover:text-gray-900 transition-colors"><ChevronLeftIcon className="w-4 h-4 mr-1"/> Back</button>
-          <AdminSettings user={user} onLogout={logout} subtitle="System Controller" />
+          <AdminAccountSettings user={user} onLogout={logout} subtitle="System Controller" />
         </div>
       );
     }
 
     if (activeSettingsView === 'team') {
-      return <ManageStylist onBack={() => setActiveSettingsView('menu')} />;
+      return <TeamAccessSettings onBack={() => setActiveSettingsView('menu')} />;
     }
 
     if (activeSettingsView === 'memberships') {
-      return <MembershipSetup onBack={() => setActiveSettingsView('menu')} />;
+      return <MembershipSettings onBack={() => setActiveSettingsView('menu')} />;
     }
 
     return (
       <div className="p-6 bg-gradient-to-b from-gray-50 to-white min-h-screen">
-        <h1 className="text-4xl font-black text-black tracking-tighter mb-8">Settings v2</h1>
+        <h1 className="text-4xl font-black text-black tracking-tighter mb-8">Admin Settings</h1>
         <div className={`grid gap-6 mb-8 ${canCustomizeBranding(user) ? 'grid-cols-2' : 'grid-cols-1'}`}>
           <button onClick={() => setActiveSettingsView('account')} className="p-8 bg-white border-4 border-gray-100 rounded-3xl flex flex-col items-center justify-center space-y-3 hover:border-brand-accent hover:shadow-md transition-all shadow-sm">
             <SettingsIcon className="w-10 h-10 text-brand-primary"/>
-            <span className="text-[10px] font-black uppercase tracking-widest">Account</span>
+            <span className="text-[10px] font-black uppercase tracking-widest">Admin Account Settings</span>
           </button>
           <button onClick={() => setActiveSettingsView('team')} className="p-8 bg-white border-4 border-gray-100 rounded-3xl flex flex-col items-center justify-center space-y-3 hover:border-brand-accent hover:shadow-md transition-all shadow-sm">
             <UsersIcon className="w-10 h-10 text-brand-primary"/>
