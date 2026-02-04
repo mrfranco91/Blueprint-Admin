@@ -4,10 +4,8 @@ import BottomNav, { Tab } from './BottomNav';
 import { useSettings } from '../contexts/SettingsContext';
 import { usePlans } from '../contexts/PlanContext';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabase';
 import {
     CheckCircleIcon,
-    UsersIcon,
     GlobeIcon,
     SettingsIcon,
     ChevronLeftIcon
@@ -15,15 +13,13 @@ import {
 import type { UserRole, GeneratedPlan } from '../types';
 import { GOOGLE_FONTS_LIST } from '../data/fonts';
 import AccountSettings from './AccountSettings';
-import PlanSummaryStep from './PlanSummaryStep';
-import StylistDashboard from './StylistDashboard';
-import ManageStylist from './ManageStylist';
+import PlanWizard from './PlanWizard';
 import MembershipSetup from './MembershipSetup';
 import { canCustomizeBranding } from '../utils/isEnterpriseAccount';
 
 export default function AdminDashboardV2({ role }: { role: UserRole }) {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
-  const [activeSettingsView, setActiveSettingsView] = useState<'menu' | 'branding' | 'account' | 'team' | 'memberships'>('menu');
+  const [activeSettingsView, setActiveSettingsView] = useState<'menu' | 'branding' | 'account' | 'memberships'>('menu');
   const [editingPlan, setEditingPlan] = useState<GeneratedPlan | null>(null);
   const [isCreatingPlan, setIsCreatingPlan] = useState(false);
 
@@ -137,10 +133,6 @@ export default function AdminDashboardV2({ role }: { role: UserRole }) {
       );
     }
 
-    if (activeSettingsView === 'team') {
-      return <ManageStylist onBack={() => setActiveSettingsView('menu')} />;
-    }
-
     if (activeSettingsView === 'memberships') {
       return <MembershipSetup onBack={() => setActiveSettingsView('menu')} />;
     }
@@ -152,10 +144,6 @@ export default function AdminDashboardV2({ role }: { role: UserRole }) {
           <button onClick={() => setActiveSettingsView('account')} className="p-8 bg-white border-4 border-gray-100 rounded-3xl flex flex-col items-center justify-center space-y-3 hover:border-brand-accent hover:shadow-md transition-all shadow-sm">
             <SettingsIcon className="w-10 h-10 text-brand-primary"/>
             <span className="text-[10px] font-black uppercase tracking-widest">Account</span>
-          </button>
-          <button onClick={() => setActiveSettingsView('team')} className="p-8 bg-white border-4 border-gray-100 rounded-3xl flex flex-col items-center justify-center space-y-3 hover:border-brand-accent hover:shadow-md transition-all shadow-sm">
-            <UsersIcon className="w-10 h-10 text-brand-primary"/>
-            <span className="text-[10px] font-black uppercase tracking-widest">Team Access</span>
           </button>
           <button onClick={() => setActiveSettingsView('memberships')} className="p-8 bg-white border-4 border-gray-100 rounded-3xl flex flex-col items-center justify-center space-y-3 hover:border-brand-accent hover:shadow-md transition-all shadow-sm">
             <CheckCircleIcon className="w-10 h-10 text-brand-primary"/>
@@ -210,9 +198,8 @@ export default function AdminDashboardV2({ role }: { role: UserRole }) {
     // If creating or editing a plan, show the plan wizard
     if (isCreatingPlan || editingPlan !== null) {
       return (
-        <StylistDashboard
+        <PlanWizard
           role="admin"
-          onLogout={() => {}}
           client={editingPlan?.client}
           existingPlan={editingPlan || undefined}
           onPlanChange={(plan) => {

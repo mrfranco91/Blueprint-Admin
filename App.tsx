@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import type { UserRole } from './types';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 
-import StylistDashboard from './components/StylistDashboard';
 import AdminDashboard from './components/AdminDashboardV2';
 import LoginScreen from './components/LoginScreen';
 import MissingCredentialsScreen from './components/MissingCredentialsScreen';
@@ -19,11 +18,9 @@ import './styles/accessibility.css';
 /* App Content (Auth-aware UI)   */
 /* ----------------------------- */
 const AppContent: React.FC = () => {
-  const { user, login, logout, authInitialized } = useAuth();
+  const { user, login, authInitialized } = useAuth();
   const { needsSquareConnect } = useSettings();
   const bypassLogin = (import.meta as any).env.VITE_BYPASS_LOGIN === '1';
-  const [forceAdmin, setForceAdmin] = useState(false);
-
   useEffect(() => {
     if (!bypassLogin || !authInitialized || user) {
       return;
@@ -31,47 +28,6 @@ const AppContent: React.FC = () => {
 
     login('admin');
   }, [authInitialized, bypassLogin, login, user]);
-
-  useEffect(() => {
-    let active = true;
-
-    if (!authInitialized || !user || user.role !== 'stylist') {
-      setForceAdmin(false);
-      return () => {
-        active = false;
-      };
-    }
-
-    (async () => {
-      const { supabase } = await import('./lib/supabase');
-      const { data } = await supabase.auth.getSession();
-      const accessToken = data.session?.access_token;
-
-      if (!accessToken) {
-        return;
-      }
-
-      const response = await fetch('/api/square/has-merchant', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        return;
-      }
-
-      const result = await response.json();
-      if (active) {
-        setForceAdmin(!!result?.hasMerchant);
-      }
-    })();
-
-    return () => {
-      active = false;
-    };
-  }, [authInitialized, user?.id, user?.role]);
 
   if (!authInitialized) {
     return (
@@ -107,15 +63,9 @@ const AppContent: React.FC = () => {
     return <AdminDashboard role="admin" />;
   }
 
-  if (forceAdmin) {
-    return <AdminDashboard role="admin" />;
-  }
-
   switch (user.role) {
     case 'admin':
       return <AdminDashboard role="admin" />;
-    case 'stylist':
-      return <StylistDashboard onLogout={logout} role="stylist" />;
     default:
       return <LoginScreen />;
   }

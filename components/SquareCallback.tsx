@@ -80,8 +80,6 @@ export default function SquareCallback() {
 
         console.log('[OAuth Callback] Session verified. User ID:', sessionCheck.session.user.id);
 
-<<<<<<< ours
-=======
         const { error: metadataError } = await supabase.auth.updateUser({
           data: {
             role: 'admin',
@@ -101,8 +99,6 @@ export default function SquareCallback() {
         } else if (!refreshedSession?.session) {
           console.warn('[OAuth Callback] Refresh session returned no session data.');
         }
-
->>>>>>> theirs
         const jwtToken = supabase_session.access_token;
 
         // Step 3: Sync team and clients (non-blocking - don't wait for these to complete)

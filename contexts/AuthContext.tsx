@@ -38,60 +38,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       // AUTHENTICATED: do not clear user due to missing metadata
       const businessName = authUser.user_metadata?.business_name;
-      // Force 'admin' role if not explicitly 'stylist', OR if it's a square-oauth user
       const isSquareOAuthUser = authUser.email?.includes('@square-oauth.blueprint');
-
-      // FIX: The logic was flawed. We want to force admin if it IS a square user, unless they are explicitly a stylist.
-      // But actually, Square OAuth users are ALWAYS admins in this system.
-      // The previous logic: (isSquareOAuthUser || role === 'stylist') === 'stylist' ? 'stylist' : 'admin'
-      // If isSquareOAuthUser is true, then (true || ...) is true. So it returned 'stylist' if isSquareOAuthUser was true!
-      // THAT WAS THE BUG. It was forcing Square users to be STYLISTS.
-
-      let role: UserRole = 'admin';
-
-      if (isSquareOAuthUser) {
-          role = 'admin';
-      } else {
-          role = (authUser.user_metadata?.role as UserRole) || 'admin';
-      }
+      const metadataRole = authUser.user_metadata?.role;
+      const role: UserRole = isSquareOAuthUser
+        ? 'admin'
+        : metadataRole === 'client'
+          ? 'client'
+          : 'admin';
 
       console.log('[[AUTH DEBUG]] Hydrating user:', { id: authUser.id, role, metadata: authUser.user_metadata, isSquareOAuthUser });
 
-      const stylistName = authUser.user_metadata?.stylist_name || authUser.user_metadata?.name;
-      const stylistId = authUser.user_metadata?.stylist_id;
-      const stylistLevelId = authUser.user_metadata?.level_id;
-      const stylistPermissions = authUser.user_metadata?.permissions;
-
-      const resolvedName = role === 'stylist'
-        ? stylistName || authUser.email?.split('@')[0] || 'Stylist'
+      const resolvedName = role === 'client'
+        ? authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Client'
         : businessName || 'Admin';
-
-      const stylistData = role === 'stylist' && stylistId
-        ? {
-            id: stylistId,
-            name: stylistName || authUser.email || 'Stylist',
-            role: 'Stylist',
-            email: authUser.email || '',
-            levelId: stylistLevelId || 'lvl_1',
-            permissions: stylistPermissions || {
-              canBookAppointments: true,
-              canOfferDiscounts: false,
-              requiresDiscountApproval: true,
-              viewGlobalReports: false,
-              viewClientContact: true,
-              viewAllSalonPlans: false,
-              can_book_own_schedule: true,
-              can_book_peer_schedules: false,
-            },
-          }
-        : undefined;
 
       setUser({
         id: authUser.id,
         name: resolvedName,
         role,
         email: authUser.email,
-        stylistData,
         isMock: false,
       });
 

@@ -62,14 +62,9 @@ const PlanSummaryStep: React.FC<PlanSummaryStepProps> = ({ plan, role, onEditPla
   const isMemberActive = plan.membershipStatus === 'active';
 
   const isClient = user?.role === 'client';
-  const loggedInStylist = useMemo(() => {
-    if (user?.role !== 'stylist') return null;
-    const stylistId = user.stylistData?.id || user.id;
-    return allStylists.find((stylist) => stylist.id === stylistId) || null;
-  }, [allStylists, user]);
-  const canBook = user?.role === 'admin' || isClient || !!loggedInStylist?.permissions.canBookAppointments;
-  const canViewClientContact = user?.role === 'admin' || isClient || !!loggedInStylist?.permissions.viewClientContact;
-  const isContactRestricted = !isClient && user?.role === 'stylist' && !canViewClientContact;
+  const canBook = user?.role === 'admin' || isClient;
+  const canViewClientContact = user?.role === 'admin' || isClient;
+  const isContactRestricted = !isClient && !canViewClientContact;
 
   const projectedMonthlySpend = useMemo(() => plan.totalCost / 12, [plan.totalCost]);
 
@@ -130,7 +125,7 @@ const PlanSummaryStep: React.FC<PlanSummaryStepProps> = ({ plan, role, onEditPla
   };
 
   const handleSendInvite = async () => {
-    if (!canViewClientContact && !isClient && user?.role === 'stylist') {
+    if (!canViewClientContact && !isClient) {
       return;
     }
 
@@ -441,18 +436,6 @@ const PlanSummaryStep: React.FC<PlanSummaryStepProps> = ({ plan, role, onEditPla
               const validStylist = allStylists.find(s => String(s.id).startsWith('TM'));
               if (validStylist) {
                   stylistIdToBookFor = validStylist.id;
-              }
-          }
-
-          if (user?.role === 'stylist' && loggedInStylist) {
-              const isBookingForSelf = stylistIdToBookFor === loggedInStylist.id;
-
-              if (isBookingForSelf && !loggedInStylist.permissions.can_book_own_schedule) {
-                  throw new Error("You do not have permission to book appointments for your own schedule.");
-              }
-
-              if (!isBookingForSelf && !loggedInStylist.permissions.can_book_peer_schedules) {
-                  throw new Error("You do not have permission to book appointments for other team members.");
               }
           }
 
