@@ -380,3 +380,12 @@ html, body {
   color: rgba(0, 0, 0, 1);
   overflow: hidden;
 }
+
+.square-oauth-callback {
+  padding: 24px;
+}
+
+.square-oauth-callback__error {
+  color: red;
+  margin: 16px 0 0;
+}

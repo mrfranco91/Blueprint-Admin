@@ -33,7 +33,12 @@ export default function SquareCallback() {
           throw new Error(tokenData?.message || 'Square login failed');
         }
 
-        const { access_token: squareToken, merchant_id, supabase_session } = tokenData;
+        const {
+          access_token: squareToken,
+          merchant_id,
+          business_name,
+          supabase_session,
+        } = tokenData;
 
         if (!squareToken) {
           throw new Error('No Square access token received');
@@ -80,6 +85,18 @@ export default function SquareCallback() {
 
         console.log('[OAuth Callback] Session verified. User ID:', sessionCheck.session.user.id);
 
+        const { error: metadataError } = await supabase.auth.updateUser({
+          data: {
+            role: 'admin',
+            merchant_id,
+            business_name,
+          },
+        });
+
+        if (metadataError) {
+          throw new Error(`Failed to finalize admin access: ${metadataError.message}`);
+        }
+
         const jwtToken = supabase_session.access_token;
 
         // Step 3: Sync team and clients (non-blocking - don't wait for these to complete)
@@ -115,11 +132,13 @@ export default function SquareCallback() {
   }, []);
 
   return (
-    <div style={{ padding: 24 }}>
-      <h2>Connecting Square…</h2>
-      <p>Please wait. This may take a moment.</p>
+    <div className="square-oauth-callback">
+      <h2 className="square-oauth-callback__title">Connecting Square…</h2>
+      <p className="square-oauth-callback__message">
+        Please wait. This may take a moment.
+      </p>
       {error && (
-        <p style={{ color: 'red', marginTop: 16 }}>
+        <p className="square-oauth-callback__error">
           {error}
         </p>
       )}
