@@ -55,29 +55,6 @@ export default function SquareCallback() {
           throw new Error('Supabase client not initialized');
         }
 
-        // Clear any mock user session before setting real session
-        localStorage.removeItem('mock_admin_user');
-
-        console.log('[OAuth Callback] Setting Supabase session...');
-
-        // Set the session in Supabase client
-        const { error: setSessionError } = await supabase.auth.setSession({
-          access_token: supabase_session.access_token,
-          refresh_token: supabase_session.refresh_token,
-        });
-
-        if (setSessionError) {
-          throw new Error(`Failed to set session: ${setSessionError.message}`);
-        }
-
-        // Give the browser a moment to persist the session to localStorage
-        await new Promise(resolve => setTimeout(resolve, 100));
-
-        // Verify session was set
-        const { data: sessionCheck, error: getSessionError } = await supabase.auth.getSession();
-        if (getSessionError) {
-          console.error('[OAuth Callback] Error checking session:', getSessionError);
-        }
         if (!sessionCheck?.session) {
           console.error('[OAuth Callback] Session check failed. Session data:', sessionCheck);
           throw new Error('Failed to set Supabase session');
