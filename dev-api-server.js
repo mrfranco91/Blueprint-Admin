@@ -133,6 +133,10 @@ const server = http.createServer(async (nodeReq, nodeRes) => {
         const { default: handler } = await import('./api/square/get-token.ts');
         return handler(req, res);
       }
+      if (pathname === '/api/square/has-merchant') {
+        const { default: handler } = await import('./api/square/has-merchant.ts');
+        return handler(req, res);
+      }
 
       res.statusCode = 404;
       res.json({ message: `Endpoint ${pathname} not found` });
