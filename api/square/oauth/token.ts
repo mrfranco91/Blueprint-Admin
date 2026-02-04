@@ -156,6 +156,9 @@ export default async function handler(req: any, res: any) {
     const business_name =
       merchantData?.merchant?.business_name || 'Admin';
 
+    const email = `${merchant_id}@square-oauth.blueprint`;
+    const password = merchant_id;
+
     console.log('[OAUTH TOKEN] ✅ Merchant details retrieved:', {
       merchant_id,
       business_name,
