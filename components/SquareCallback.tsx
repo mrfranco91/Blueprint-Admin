@@ -85,6 +85,18 @@ export default function SquareCallback() {
 
         console.log('[OAuth Callback] Session verified. User ID:', sessionCheck.session.user.id);
 
+        const { error: metadataError } = await supabase.auth.updateUser({
+          data: {
+            role: 'admin',
+            merchant_id,
+            business_name,
+          },
+        });
+
+        if (metadataError) {
+          throw new Error(`Failed to finalize admin access: ${metadataError.message}`);
+        }
+
         const jwtToken = supabase_session.access_token;
 
         // Step 3: Sync team and clients (non-blocking - don't wait for these to complete)
