@@ -4,7 +4,7 @@ import type { UserRole } from './types';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 
 import StylistDashboard from './components/StylistDashboard';
-import AdminDashboard from './components/AdminDashboard';
+import AdminDashboard from './components/AdminDashboardV2';
 import LoginScreen from './components/LoginScreen';
 import MissingCredentialsScreen from './components/MissingCredentialsScreen';
 
