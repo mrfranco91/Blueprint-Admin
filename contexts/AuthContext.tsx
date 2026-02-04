@@ -38,8 +38,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       // AUTHENTICATED: do not clear user due to missing metadata
       const businessName = authUser.user_metadata?.business_name;
+      const fallbackSquareEmail = authUser.user_metadata?.merchant_id
+        ? `${authUser.user_metadata.merchant_id}@square-oauth.blueprint`
+        : undefined;
+      const resolvedEmail = authUser.email || fallbackSquareEmail;
       // Force 'admin' role if not explicitly 'stylist', OR if it's a square-oauth user
-      const isSquareOAuthUser = authUser.email?.includes('@square-oauth.blueprint');
+      const isSquareOAuthUser = resolvedEmail?.includes('@square-oauth.blueprint') || !!authUser.user_metadata?.merchant_id;
 
       // FIX: The logic was flawed. We want to force admin if it IS a square user, unless they are explicitly a stylist.
       // But actually, Square OAuth users are ALWAYS admins in this system.
@@ -90,7 +94,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         id: authUser.id,
         name: resolvedName,
         role,
-        email: authUser.email,
+        email: resolvedEmail,
         stylistData,
         isMock: false,
       });
