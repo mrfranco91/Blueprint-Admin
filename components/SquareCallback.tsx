@@ -97,6 +97,14 @@ export default function SquareCallback() {
           throw new Error(`Failed to finalize admin access: ${metadataError.message}`);
         }
 
+        const { data: refreshedSession, error: refreshError } = await supabase.auth.refreshSession();
+
+        if (refreshError) {
+          console.warn('[OAuth Callback] Failed to refresh session metadata:', refreshError.message);
+        } else if (!refreshedSession?.session) {
+          console.warn('[OAuth Callback] Refresh session returned no session data.');
+        }
+
         const jwtToken = supabase_session.access_token;
 
         // Step 3: Sync team and clients (non-blocking - don't wait for these to complete)
