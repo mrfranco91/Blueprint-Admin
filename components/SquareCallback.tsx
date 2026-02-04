@@ -132,11 +132,13 @@ export default function SquareCallback() {
   }, []);
 
   return (
-    <div style={{ padding: 24 }}>
-      <h2>Connecting Square…</h2>
-      <p>Please wait. This may take a moment.</p>
+    <div className="square-oauth-callback">
+      <h2 className="square-oauth-callback__title">Connecting Square…</h2>
+      <p className="square-oauth-callback__message">
+        Please wait. This may take a moment.
+      </p>
       {error && (
-        <p style={{ color: 'red', marginTop: 16 }}>
+        <p className="square-oauth-callback__error">
           {error}
         </p>
       )}
