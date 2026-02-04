@@ -43,7 +43,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         : undefined;
       const resolvedEmail = authUser.email || fallbackSquareEmail;
       const rawMetadataRole = authUser.user_metadata?.role as UserRole | string | undefined;
-      const metadataRole = rawMetadataRole === 'owner' ? 'admin' : (rawMetadataRole as UserRole | undefined);
+      const normalizedMetadataRole = typeof rawMetadataRole === 'string'
+        ? rawMetadataRole.toLowerCase()
+        : rawMetadataRole;
+      const metadataRole = normalizedMetadataRole === 'owner'
+        ? 'admin'
+        : (normalizedMetadataRole as UserRole | undefined);
       const metadataStylistId = authUser.user_metadata?.stylist_id;
       const role: UserRole = metadataRole === 'stylist' && metadataStylistId ? 'stylist' : 'admin';
 
