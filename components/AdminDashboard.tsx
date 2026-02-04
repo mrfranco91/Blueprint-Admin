@@ -208,11 +208,11 @@ export default function AdminDashboard({ role }: { role: UserRole }) {
 
   const renderActiveTab = () => {
     // If creating or editing a plan, show the plan wizard
-    if (isCreatingPlan || editingPlan !== undefined) {
+    if (isCreatingPlan || editingPlan !== null) {
       return (
         <StylistDashboard
           role="admin"
-          onLogout={() => {}}
+          onLogout={logout}
           client={editingPlan?.client}
           existingPlan={editingPlan || undefined}
           onPlanChange={(plan) => {
@@ -237,7 +237,10 @@ export default function AdminDashboard({ role }: { role: UserRole }) {
 
   const handleTabChange = (tab: Tab) => {
     setActiveTab(tab);
-    setEditingPlan(undefined);
+    if (tab !== 'plans') {
+      setIsCreatingPlan(false);
+      setEditingPlan(null);
+    }
     if (tab === 'settings') {
       setActiveSettingsView('menu');
     }
