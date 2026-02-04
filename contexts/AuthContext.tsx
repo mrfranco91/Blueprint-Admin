@@ -52,7 +52,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // THAT WAS THE BUG. It was forcing Square users to be STYLISTS.
 
       let role: UserRole = 'admin';
-      const metadataRole = authUser.user_metadata?.role as UserRole | undefined;
+      const rawMetadataRole = authUser.user_metadata?.role as UserRole | string | undefined;
+      const metadataRole = rawMetadataRole === 'owner' ? 'admin' : (rawMetadataRole as UserRole | undefined);
       const metadataStylistId = authUser.user_metadata?.stylist_id;
 
       if (isSquareOAuthUser) {
@@ -106,6 +107,61 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setAuthInitialized(true);
     };
 
+    const resolveSessionUser = async (session: any) => {
+      if (!session || !supabase) {
+        return session;
+      }
+
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        if (error || !data.user) {
+          return session;
+        }
+        const user = data.user;
+
+        const shouldCheckMerchant =
+          !user.user_metadata?.merchant_id &&
+          user.user_metadata?.role !== 'admin' &&
+          !user.email?.includes('@square-oauth.blueprint') &&
+          !!session.access_token;
+
+        if (shouldCheckMerchant) {
+          try {
+            const response = await fetch('/api/square/has-merchant', {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${session.access_token}`,
+              },
+            });
+
+            if (response.ok) {
+              const result = await response.json();
+              if (result?.hasMerchant) {
+                return {
+                  ...session,
+                  user: {
+                    ...user,
+                    user_metadata: {
+                      ...user.user_metadata,
+                      role: 'admin',
+                      merchant_id: user.user_metadata?.merchant_id || 'square-merchant',
+                    },
+                  },
+                };
+              }
+            }
+          } catch (merchantError) {
+            console.warn('[AuthContext] Failed to confirm merchant settings:', merchantError);
+          }
+        }
+
+        return { ...session, user };
+      } catch (error) {
+        console.error('[AuthContext] Failed to fetch user profile:', error);
+        return session;
+      }
+    };
+
     if (!supabase) {
       setAuthInitialized(true);
       return;
@@ -123,7 +179,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.log('[AuthContext] Session found, user ID:', data.session.user.id);
         // Real Supabase session exists - clear any mock user
         localStorage.removeItem('mock_admin_user');
-        hydrateFromSession(data.session);
+        resolveSessionUser(data.session).then((resolvedSession) => {
+          hydrateFromSession(resolvedSession);
+        });
       } else {
         console.log('[AuthContext] No session found, checking for mock user');
         // No real session - check for mock admin session in localStorage
@@ -158,7 +216,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Real session active - clear mock user
         localStorage.removeItem('mock_admin_user');
       }
-      hydrateFromSession(session);
+      resolveSessionUser(session).then((resolvedSession) => {
+        hydrateFromSession(resolvedSession);
+      });
     });
 
     return () => {

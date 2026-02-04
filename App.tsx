@@ -1,5 +1,4 @@
-import React from 'react';
-import { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { UserRole } from './types';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 
@@ -23,6 +22,7 @@ const AppContent: React.FC = () => {
   const { user, login, logout, authInitialized } = useAuth();
   const { needsSquareConnect } = useSettings();
   const bypassLogin = (import.meta as any).env.VITE_BYPASS_LOGIN === '1';
+  const [forceAdmin, setForceAdmin] = useState(false);
 
   useEffect(() => {
     if (!bypassLogin || !authInitialized || user) {
@@ -31,6 +31,47 @@ const AppContent: React.FC = () => {
 
     login('admin');
   }, [authInitialized, bypassLogin, login, user]);
+
+  useEffect(() => {
+    let active = true;
+
+    if (!authInitialized || !user || user.role !== 'stylist') {
+      setForceAdmin(false);
+      return () => {
+        active = false;
+      };
+    }
+
+    (async () => {
+      const { supabase } = await import('./lib/supabase');
+      const { data } = await supabase.auth.getSession();
+      const accessToken = data.session?.access_token;
+
+      if (!accessToken) {
+        return;
+      }
+
+      const response = await fetch('/api/square/has-merchant', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        return;
+      }
+
+      const result = await response.json();
+      if (active) {
+        setForceAdmin(!!result?.hasMerchant);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [authInitialized, user?.id, user?.role]);
 
   if (!authInitialized) {
     return (
@@ -63,6 +104,10 @@ const AppContent: React.FC = () => {
   const isSquareOAuthUser = user.email?.includes('@square-oauth.blueprint');
 
   if (isSquareOAuthUser) {
+    return <AdminDashboard role="admin" />;
+  }
+
+  if (forceAdmin) {
     return <AdminDashboard role="admin" />;
   }
 
