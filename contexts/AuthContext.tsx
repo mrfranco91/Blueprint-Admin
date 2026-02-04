@@ -52,6 +52,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         ? authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Client'
         : businessName || 'Admin';
 
+=======
+      const resolvedName = role === 'client'
+        ? authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Client'
       setUser({
         id: authUser.id,
         name: resolvedName,

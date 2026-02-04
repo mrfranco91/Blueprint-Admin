@@ -28,6 +28,28 @@ const AppContent: React.FC = () => {
 
     login('admin');
   }, [authInitialized, bypassLogin, login, user]);
+=======
+      const response = await fetch('/api/square/has-merchant', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        return;
+      }
+
+      const result = await response.json();
+      if (active) {
+        setForceAdmin(!!result?.hasMerchant);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [authInitialized, user?.id, user?.role]);
 
   if (!authInitialized) {
     return (
