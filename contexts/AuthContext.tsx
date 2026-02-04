@@ -53,11 +53,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       let role: UserRole = 'admin';
       const metadataRole = authUser.user_metadata?.role as UserRole | undefined;
-      const stylistId = authUser.user_metadata?.stylist_id;
+      const metadataStylistId = authUser.user_metadata?.stylist_id;
 
       if (isSquareOAuthUser) {
           role = 'admin';
-      } else if (metadataRole === 'stylist' && !stylistId) {
+      } else if (metadataRole === 'stylist' && !metadataStylistId) {
           role = 'admin';
       } else {
           role = metadataRole || 'admin';
