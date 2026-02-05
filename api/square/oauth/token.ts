@@ -56,6 +56,10 @@ export default async function handler(req: any, res: any) {
       body?.code ??
       (typeof req.query?.code === 'string' ? req.query.code : undefined);
 
+    // Check if we already have access_token (from retry with email)
+    const providedAccessToken = body?.access_token || req.query?.access_token;
+    const providedMerchantId = body?.merchant_id || req.query?.merchant_id;
+
     if (!code && typeof req.headers?.referer === 'string') {
       try {
         const refUrl = new URL(req.headers.referer);
@@ -64,16 +68,15 @@ export default async function handler(req: any, res: any) {
     }
 
     console.log('[OAUTH TOKEN] Request details:', {
-      hasBody: !!body,
-      bodyCode: body?.code,
-      queryCode: req.query?.code,
-      referer: req.headers?.referer,
-      extractedCode: code,
+      hasCode: !!code,
+      hasProvidedAccessToken: !!providedAccessToken,
+      hasProvidedMerchantId: !!providedMerchantId,
+      bodyEmail: body?.email,
     });
 
-    if (!code) {
-      console.error('[OAUTH TOKEN] Missing code after extraction');
-      return res.status(400).json({ message: 'Missing OAuth code.' });
+    if (!code && !providedAccessToken) {
+      console.error('[OAUTH TOKEN] Missing code or access_token');
+      return res.status(400).json({ message: 'Missing OAuth code or access token.' });
     }
 
     const env = (process.env.VITE_SQUARE_ENV || 'production').toLowerCase();
