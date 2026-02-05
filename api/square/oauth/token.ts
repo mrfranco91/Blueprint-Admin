@@ -84,14 +84,19 @@ export default async function handler(req: any, res: any) {
     const requestRedirectUri = requestOrigin ? `${requestOrigin}/square/callback` : null;
 
     const resolvedRedirectUri = (() => {
-      if (redirectUri && requestRedirectUri && redirectUri !== requestRedirectUri) {
-        console.warn('[OAUTH TOKEN] Redirect URI mismatch, using request origin:', {
-          envRedirect: redirectUri,
-          requestRedirect: requestRedirectUri,
-        });
+      // IMPORTANT: Prefer the request-based redirect URI (dynamic) over the env variable
+      // This ensures OAuth callback works correctly even when Vercel preview domains change
+      if (requestRedirectUri) {
+        if (redirectUri && redirectUri !== requestRedirectUri) {
+          console.warn('[OAUTH TOKEN] Redirect URI mismatch, using request origin:', {
+            envRedirect: redirectUri,
+            requestRedirect: requestRedirectUri,
+          });
+        }
         return requestRedirectUri;
       }
-      return redirectUri || requestRedirectUri;
+      // Fall back to env variable only if request origin couldn't be determined
+      return redirectUri;
     })();
 
     console.log('[OAUTH TOKEN] Config check:', {
