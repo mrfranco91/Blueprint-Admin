@@ -443,33 +443,75 @@ export default async function handler(req: any, res: any) {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    console.log('[OAUTH TOKEN] Creating session using admin API for user:', user.id);
+    console.log('[OAUTH TOKEN] Generating access token for user:', user.id);
 
-    // Use admin API to create a session directly - this is more reliable than sign-in with service role
-    const { data: sessionData, error: sessionError } = await (supabaseAdmin.auth as any).admin.createSession({
-      userId: user.id,
+    // Use admin API to generate a magic link, then extract the session from the token
+    // This is the reliable way to get a valid session for the user
+    const { data: linkData, error: linkError } = await (supabaseAdmin.auth as any).admin.generateLink({
+      type: 'magiclink',
+      email: user.email,
     });
 
-    console.log('[OAUTH TOKEN] Session creation result:', {
-      hasSession: !!sessionData?.session,
-      hasUser: !!sessionData?.user,
-      hasError: !!sessionError,
-      errorMessage: sessionError?.message,
+    console.log('[OAUTH TOKEN] Magic link generation result:', {
+      hasLink: !!linkData?.properties?.email_link,
+      hasError: !!linkError,
+      errorMessage: linkError?.message,
     });
 
-    if (sessionError) {
-      console.error('[OAUTH TOKEN] ❌ Failed to create session via admin API:', {
+    if (linkError) {
+      console.error('[OAUTH TOKEN] ❌ Failed to generate magic link:', {
         userId: user.id,
-        error: sessionError.message,
+        error: linkError.message,
       });
-      throw new Error(`Failed to create session: ${sessionError.message}`);
+      throw new Error(`Failed to generate link: ${linkError.message}`);
     }
 
-    const session = sessionData?.session;
+    // Extract the token from the magic link
+    const emailLink = linkData?.properties?.email_link;
+    if (!emailLink) {
+      throw new Error('Failed to generate email link');
+    }
 
-    if (!session) {
-      console.error('[OAUTH TOKEN] ❌ CRITICAL: Session object is null after admin createSession');
-      throw new Error('Failed to create session for user');
+    const linkUrl = new URL(emailLink);
+    const token = linkUrl.searchParams.get('token');
+
+    if (!token) {
+      throw new Error('Failed to extract token from email link');
+    }
+
+    console.log('[OAUTH TOKEN] Exchanging token for session...');
+
+    // Exchange the token for a session using the Supabase REST API
+    const tokenExchangeRes = await fetch(`${supabaseUrl}/auth/v1/verify`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': serviceRoleKey,
+      },
+      body: JSON.stringify({ token, type: 'magiclink' }),
+    });
+
+    const tokenExchangeData = await tokenExchangeRes.json();
+
+    if (!tokenExchangeRes.ok) {
+      console.error('[OAUTH TOKEN] ❌ Token exchange failed:', tokenExchangeData);
+      throw new Error(`Token exchange failed: ${tokenExchangeData?.error_description || 'Unknown error'}`);
+    }
+
+    console.log('[OAUTH TOKEN] ✅ Token exchanged successfully');
+
+    // The response should contain access_token and refresh_token
+    const session = {
+      access_token: tokenExchangeData.access_token,
+      refresh_token: tokenExchangeData.refresh_token,
+      expires_in: tokenExchangeData.expires_in,
+      token_type: tokenExchangeData.token_type,
+      user: tokenExchangeData.user,
+    };
+
+    if (!session.access_token) {
+      console.error('[OAUTH TOKEN] ❌ CRITICAL: No access token in response');
+      throw new Error('Failed to generate access token');
     }
 
     console.log('[OAUTH TOKEN] ✅ Session created successfully:', {
