@@ -15,6 +15,7 @@ import { GOOGLE_FONTS_LIST } from '../data/fonts';
 import AccountSettings from './AccountSettings';
 import PlanWizard from './PlanWizard';
 import MembershipSetup from './MembershipSetup';
+import TeamAccessSettings from './TeamAccessSettings';
 import { canCustomizeBranding } from '../utils/isEnterpriseAccount';
 
 export default function AdminDashboardV2({ role }: { role: UserRole }) {
