@@ -23,6 +23,18 @@ const AppContent: React.FC = () => {
   const bypassLogin = (import.meta as any).env.VITE_BYPASS_LOGIN === '1';
   const [forceAdmin, setForceAdmin] = useState(false);
 
+  // DEBUG: Log user role when it changes
+  useEffect(() => {
+    if (user) {
+      console.log('[AppContent] User authenticated:', {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        name: user.name,
+      });
+    }
+  }, [user]);
+
   useEffect(() => {
     if (!bypassLogin || !authInitialized || user) {
       return;
