@@ -128,6 +128,13 @@ export default async function handler(req: any, res: any) {
       `${appId}:${appSecret}`
     ).toString('base64');
 
+    console.log('[OAUTH TOKEN] Exchanging code with Square:', {
+      code: code.substring(0, 10) + '...',
+      redirectUri: resolvedRedirectUri,
+      hasAppId: !!appId,
+      hasAppSecret: !!appSecret,
+    });
+
     const tokenRes = await fetch(`${baseUrl}/oauth2/token`, {
       method: 'POST',
       headers: {
@@ -143,10 +150,20 @@ export default async function handler(req: any, res: any) {
       }),
     });
 
+    console.log('[OAUTH TOKEN] Square token response:', {
+      status: tokenRes.status,
+      ok: tokenRes.ok,
+    });
+
     const tokenData = await tokenRes.json();
 
     if (!tokenRes.ok) {
-      console.error('Square OAuth Token Error:', tokenData);
+      console.error('[OAUTH TOKEN] ❌ Square OAuth Token Error:', {
+        status: tokenRes.status,
+        error: tokenData?.error,
+        errorDescription: tokenData?.error_description,
+        fullError: JSON.stringify(tokenData),
+      });
       return res.status(tokenRes.status).json({
         message: 'Failed to exchange Square OAuth token.',
         square_error: tokenData,
