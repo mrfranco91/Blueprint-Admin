@@ -284,13 +284,19 @@ export default async function handler(req: any, res: any) {
       console.log('[OAUTH TOKEN] Creating or retrieving user by email:', email);
       console.log('[OAUTH TOKEN] Expected password:', password);
 
-      // Strategy: Try to sign in first. If that works, user exists (even if soft-deleted).
-      // This avoids the listUsers pagination and soft-delete issues.
-      const signInClient = createClient(supabaseUrl, serviceRoleKey, {
+      // Strategy: Try to sign in first with ANON key. If that works, user exists.
+      // Must use anon key for sign-in, NOT service role key.
+      const publishableKey = process.env.VITE_SUPABASE_ANON_KEY;
+      if (!publishableKey) {
+        console.error('[OAUTH TOKEN] ❌ Missing VITE_SUPABASE_ANON_KEY for user lookup sign-in');
+        throw new Error('Supabase anon key not configured');
+      }
+
+      const signInClient = createClient(supabaseUrl, publishableKey, {
         auth: { autoRefreshToken: false, persistSession: false }
       });
 
-      console.log('[OAUTH TOKEN] Attempting sign-in with email:', email);
+      console.log('[OAUTH TOKEN] Attempting sign-in with email (using anon key):', email);
       const { data: signInAttempt, error: signInAttemptError } = await signInClient.auth.signInWithPassword({
         email,
         password,
