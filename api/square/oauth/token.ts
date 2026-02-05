@@ -447,7 +447,26 @@ export default async function handler(req: any, res: any) {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    console.log('[OAUTH TOKEN] Creating session by signing in with newly created credentials:', email);
+    console.log('[OAUTH TOKEN] Creating session by signing in with newly created credentials:', {
+      email,
+      passwordLength: password.length,
+      userExists: !!user,
+      userId: user?.id,
+    });
+
+    // Verify user exists in auth before attempting sign-in
+    console.log('[OAUTH TOKEN] Verifying user exists before sign-in attempt...');
+    const { data: verifyData, error: verifyError } = await (supabaseAdmin.auth as any).admin.getUserById(
+      user.id
+    );
+
+    console.log('[OAUTH TOKEN] User verification result:', {
+      userExists: !!verifyData?.user,
+      userEmail: verifyData?.user?.email,
+      userEmailConfirmed: !!verifyData?.user?.email_confirmed_at,
+      hasError: !!verifyError,
+      errorMessage: verifyError?.message,
+    });
 
     // Create a regular Supabase client (not service role) to sign in
     // Use just the publishable key (anon key) - this is the standard way
@@ -457,8 +476,19 @@ export default async function handler(req: any, res: any) {
       throw new Error('Supabase anon key not configured');
     }
 
+    console.log('[OAUTH TOKEN] Anon key check:', {
+      hasAnon: !!publishableKey,
+      anonKeyStart: publishableKey?.substring(0, 20),
+    });
+
     const publicSupabase = createClient(supabaseUrl, publishableKey, {
       auth: { autoRefreshToken: false, persistSession: false }
+    });
+
+    console.log('[OAUTH TOKEN] Attempting sign-in with:', {
+      email,
+      passwordLength: password.length,
+      timestamp: new Date().toISOString(),
     });
 
     const { data: signInData, error: signInError } = await publicSupabase.auth.signInWithPassword({
@@ -471,12 +501,15 @@ export default async function handler(req: any, res: any) {
       hasUser: !!signInData?.user,
       hasError: !!signInError,
       errorMessage: signInError?.message,
+      errorStatus: (signInError as any)?.status,
+      errorCode: (signInError as any)?.code,
     });
 
     if (signInError) {
       console.error('[OAUTH TOKEN] ❌ Failed to sign in with new user credentials:', {
         email,
         error: signInError.message,
+        fullError: JSON.stringify(signInError),
       });
       throw new Error(`Failed to create session: ${signInError.message}`);
     }
