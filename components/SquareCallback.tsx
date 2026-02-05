@@ -13,20 +13,18 @@ export default function SquareCallback() {
     try {
       const body: any = {};
 
-      // First attempt: use code
-      if (!squareTokenData && code) {
-        body.code = code;
-      }
-
-      // Retry with email: use saved token data
+      // Retry with email: use saved token data (never send code again - it's single-use!)
       if (squareTokenData) {
+        console.log('Retrying with email using saved token data');
         body.email = emailValue;
         body.access_token = squareTokenData.access_token;
         body.merchant_id = squareTokenData.merchant_id;
-      }
-
-      if (emailValue && !squareTokenData) {
-        body.email = emailValue;
+      } else {
+        // First attempt: only use code
+        body.code = code;
+        if (emailValue) {
+          body.email = emailValue;
+        }
       }
 
       // Step 1: Exchange OAuth code for Square access token
