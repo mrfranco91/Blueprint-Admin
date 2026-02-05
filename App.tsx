@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import type { UserRole } from './types';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 
-import StylistDashboard from './components/StylistDashboard';
 import AdminDashboard from './components/AdminDashboardV2';
 import LoginScreen from './components/LoginScreen';
 import MissingCredentialsScreen from './components/MissingCredentialsScreen';
@@ -114,8 +113,6 @@ const AppContent: React.FC = () => {
   switch (user.role) {
     case 'admin':
       return <AdminDashboard role="admin" />;
-    case 'stylist':
-      return <StylistDashboard onLogout={logout} role="stylist" />;
     default:
       return <LoginScreen />;
   }
