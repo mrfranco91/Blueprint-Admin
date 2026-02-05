@@ -259,11 +259,12 @@ export default async function handler(req: any, res: any) {
         );
 
         if (updateError) {
-          console.warn('[OAUTH TOKEN] ⚠️ Failed to update user password/metadata:', {
+          console.error('[OAUTH TOKEN] ❌ CRITICAL: Failed to update user password/metadata:', {
             userId: user.id,
             error: updateError.message,
+            errorCode: (updateError as any)?.code,
           });
-          // Continue anyway - this is not critical
+          throw new Error(`Failed to update user password: ${updateError.message}`);
         } else {
           console.log('[OAUTH TOKEN] ✅ User password and metadata updated successfully');
         }
