@@ -44,9 +44,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         ? 'admin'
         : metadataRole === 'client'
           ? 'client'
-          : 'admin';
+          : metadataRole === 'owner'
+            ? 'admin'
+            : 'admin';
       const resolvedName = role === 'client'
         ? authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Client'
+        : authUser.user_metadata?.business_name || authUser.email?.split('@')[0] || 'Admin';
+
+      console.log('[AuthContext] Setting user with role:', {
+        userId: authUser.id,
+        email: authUser.email,
+        rawMetadataRole: authUser.user_metadata?.role,
+        resolvedRole: role,
+        isSquareOAuthUser: authUser.email?.includes('@square-oauth.blueprint'),
+      });
+
       setUser({
         id: authUser.id,
         name: resolvedName,
@@ -73,6 +85,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const shouldCheckMerchant =
           !user.user_metadata?.merchant_id &&
           user.user_metadata?.role !== 'admin' &&
+          user.user_metadata?.role !== 'owner' &&
           !user.email?.includes('@square-oauth.blueprint') &&
           !!session.access_token;
 

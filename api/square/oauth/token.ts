@@ -23,6 +23,15 @@ const squareApiFetch = async (
 };
 
 export default async function handler(req: any, res: any) {
+  console.log('[OAUTH TOKEN] Handler called:', {
+    method: req.method,
+    headers: {
+      contentType: req.headers['content-type'],
+      authorization: req.headers['authorization'] ? 'present' : 'missing',
+    },
+    timestamp: new Date().toISOString(),
+  });
+
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ message: 'Method not allowed' });
@@ -30,6 +39,11 @@ export default async function handler(req: any, res: any) {
 
   try {
     let body = req.body;
+    console.log('[OAUTH TOKEN] Raw body:', {
+      type: typeof body,
+      isString: typeof body === 'string',
+      length: typeof body === 'string' ? body.length : 'N/A',
+    });
     if (typeof body === 'string') {
       try {
         body = JSON.parse(body);
@@ -42,6 +56,10 @@ export default async function handler(req: any, res: any) {
       body?.code ??
       (typeof req.query?.code === 'string' ? req.query.code : undefined);
 
+    // Check if we already have access_token (from retry with email)
+    const providedAccessToken = body?.access_token || req.query?.access_token;
+    const providedMerchantId = body?.merchant_id || req.query?.merchant_id;
+
     if (!code && typeof req.headers?.referer === 'string') {
       try {
         const refUrl = new URL(req.headers.referer);
@@ -50,16 +68,15 @@ export default async function handler(req: any, res: any) {
     }
 
     console.log('[OAUTH TOKEN] Request details:', {
-      hasBody: !!body,
-      bodyCode: body?.code,
-      queryCode: req.query?.code,
-      referer: req.headers?.referer,
-      extractedCode: code,
+      hasCode: !!code,
+      hasProvidedAccessToken: !!providedAccessToken,
+      hasProvidedMerchantId: !!providedMerchantId,
+      bodyEmail: body?.email,
     });
 
-    if (!code) {
-      console.error('[OAUTH TOKEN] Missing code after extraction');
-      return res.status(400).json({ message: 'Missing OAuth code.' });
+    if (!code && !providedAccessToken) {
+      console.error('[OAUTH TOKEN] Missing code or access_token');
+      return res.status(400).json({ message: 'Missing OAuth code or access token.' });
     }
 
     const env = (process.env.VITE_SQUARE_ENV || 'production').toLowerCase();
@@ -83,16 +100,15 @@ export default async function handler(req: any, res: any) {
     const requestOrigin = resolvedHost ? `${protocol}://${resolvedHost}` : null;
     const requestRedirectUri = requestOrigin ? `${requestOrigin}/square/callback` : null;
 
-    const resolvedRedirectUri = (() => {
-      if (redirectUri && requestRedirectUri && redirectUri !== requestRedirectUri) {
-        console.warn('[OAUTH TOKEN] Redirect URI mismatch, using request origin:', {
-          envRedirect: redirectUri,
-          requestRedirect: requestRedirectUri,
-        });
-        return requestRedirectUri;
-      }
-      return redirectUri || requestRedirectUri;
-    })();
+    const resolvedRedirectUri = redirectUri || requestRedirectUri;
+
+    if (redirectUri && requestRedirectUri && redirectUri !== requestRedirectUri) {
+      console.log('[OAUTH TOKEN] Using registered redirect URI from env:', {
+        envRedirect: redirectUri,
+        requestRedirect: requestRedirectUri,
+        note: 'Square only accepts the registered redirect URI, using env variable',
+      });
+    }
 
     console.log('[OAUTH TOKEN] Config check:', {
       env,
@@ -111,36 +127,64 @@ export default async function handler(req: any, res: any) {
       return res.status(500).json({ message: 'Square OAuth credentials not configured on server.' });
     }
 
-    const basicAuth = Buffer.from(
-      `${appId}:${appSecret}`
-    ).toString('base64');
+    let access_token = providedAccessToken;
+    let merchant_id = providedMerchantId;
 
-    const tokenRes = await fetch(`${baseUrl}/oauth2/token`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Basic ${basicAuth}`,
-      },
-      body: JSON.stringify({
-        client_id: appId,
-        client_secret: appSecret,
-        grant_type: 'authorization_code',
-        code,
-        redirect_uri: resolvedRedirectUri,
-      }),
-    });
+    // Only exchange code with Square if we don't already have access_token
+    if (!access_token && code) {
+      const basicAuth = Buffer.from(
+        `${appId}:${appSecret}`
+      ).toString('base64');
 
-    const tokenData = await tokenRes.json();
-
-    if (!tokenRes.ok) {
-      console.error('Square OAuth Token Error:', tokenData);
-      return res.status(tokenRes.status).json({
-        message: 'Failed to exchange Square OAuth token.',
-        square_error: tokenData,
+      console.log('[OAUTH TOKEN] Exchanging code with Square:', {
+        code: code.substring(0, 10) + '...',
+        redirectUri: resolvedRedirectUri,
+        hasAppId: !!appId,
+        hasAppSecret: !!appSecret,
       });
-    }
 
-    const { access_token, merchant_id } = tokenData;
+      const tokenRes = await fetch(`${baseUrl}/oauth2/token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${basicAuth}`,
+        },
+        body: JSON.stringify({
+          client_id: appId,
+          client_secret: appSecret,
+          grant_type: 'authorization_code',
+          code,
+          redirect_uri: resolvedRedirectUri,
+        }),
+      });
+
+      console.log('[OAUTH TOKEN] Square token response:', {
+        status: tokenRes.status,
+        ok: tokenRes.ok,
+      });
+
+      const tokenData = await tokenRes.json();
+
+      if (!tokenRes.ok) {
+        console.error('[OAUTH TOKEN] ❌ Square OAuth Token Error:', {
+          status: tokenRes.status,
+          error: tokenData?.error,
+          errorDescription: tokenData?.error_description,
+          fullError: JSON.stringify(tokenData),
+        });
+        return res.status(tokenRes.status).json({
+          message: 'Failed to exchange Square OAuth token.',
+          square_error: tokenData,
+        });
+      }
+
+      access_token = tokenData.access_token;
+      merchant_id = tokenData.merchant_id;
+    } else if (providedAccessToken && providedMerchantId) {
+      console.log('[OAUTH TOKEN] Using provided access_token (retry with email)');
+    } else {
+      throw new Error('No way to get Square access token');
+    }
 
     console.log('[OAUTH TOKEN] ✅ Square OAuth token exchanged successfully:', {
       merchant_id,
@@ -156,335 +200,139 @@ export default async function handler(req: any, res: any) {
     const business_name =
       merchantData?.merchant?.business_name || 'Admin';
 
+    // Extract merchant email from Square data - could be in different fields
+    // First check if frontend is providing email
+    let email = body?.email || req.query?.email;
+
+    // If not provided, try to get it from Square merchant data
+    if (!email) {
+      email = merchantData?.merchant?.email ||
+              merchantData?.merchant?.contact_email ||
+              merchantData?.merchant?.business_email;
+    }
+
+    // If still no email, ask the user to provide one
+    if (!email) {
+      console.log('[OAUTH TOKEN] No email found in Square data, asking user to provide one');
+      // Return the already-exchanged tokens so we don't need to exchange the code again
+      return res.status(400).json({
+        message: 'Email needed to complete authentication',
+        needsEmail: true,
+        merchant_id,
+        business_name,
+        access_token,
+        // NOTE: DO NOT return code - it's single-use and already exchanged!
+      });
+    }
+
     console.log('[OAUTH TOKEN] ✅ Merchant details retrieved:', {
       merchant_id,
       business_name,
+      email,
     });
 
     const supabaseUrl = process.env.VITE_SUPABASE_URL;
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const publishableKey = process.env.VITE_SUPABASE_ANON_KEY;
 
-    if (!supabaseUrl || !serviceRoleKey) {
+    if (!supabaseUrl || !serviceRoleKey || !publishableKey) {
       console.error('[OAUTH TOKEN] ❌ Missing Supabase credentials:', {
         hasUrl: !!supabaseUrl,
         hasServiceKey: !!serviceRoleKey,
+        hasAnon: !!publishableKey,
       });
       return res.status(500).json({ message: 'Supabase credentials not configured on server.' });
     }
 
-    const supabaseAdmin = createClient(
-      supabaseUrl,
-      serviceRoleKey,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
-    );
-
-    // 🔍 First, check if this Square merchant already has settings
-    console.log('[OAUTH TOKEN] Checking for existing merchant_settings:', {
-      merchant_id,
-      step: 'lookup_existing_settings',
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    const { data: existingSettings, error: settingsLookupError } = await supabaseAdmin
-      .from('merchant_settings')
-      .select('supabase_user_id')
-      .eq('square_merchant_id', merchant_id)
-      .maybeSingle();
+    // Generate a random password for this user (they authenticated via Square OAuth, not email/password)
+    const password = Math.random().toString(36).slice(-16) + Math.random().toString(36).slice(-16);
 
-    console.log('[OAUTH TOKEN] Merchant settings lookup result:', {
-      foundExistingSettings: !!existingSettings,
-      existingUserId: existingSettings?.supabase_user_id,
-      hasError: !!settingsLookupError,
-      errorMessage: settingsLookupError?.message,
-    });
+    console.log('[OAUTH TOKEN] Using Square merchant email:', { email, passwordLength: password.length });
 
-    if (settingsLookupError) {
-      console.error('[OAUTH TOKEN] ❌ Error looking up existing settings:', {
-        merchant_id,
-        error: settingsLookupError.message,
-      });
-      throw new Error(`Failed to check existing merchant settings: ${settingsLookupError.message}`);
-    }
-
-        console.log('[OAUTH TOKEN] Using standard OAuth credentials:', {
+    // Use admin API to create or update user
+    const { data: createData, error: createError } = await (supabaseAdmin.auth as any).admin.createUser({
       email,
-      passwordLength: password.length,
+      password,
+      email_confirm: true,
+      user_metadata: { role: 'admin', merchant_id, business_name },
     });
 
-    let user: any;
+    let user = createData?.user;
 
-    // If merchant already has settings, try to use that existing user
-    if (existingSettings?.supabase_user_id) {
-      console.log('[OAUTH TOKEN] Existing merchant_settings found, checking if user still exists:', {
-        userId: existingSettings.supabase_user_id,
-        step: 'lookup_existing_user',
+    // If user already exists, update them instead
+    if (createError?.message?.includes('already')) {
+      console.log('[OAUTH TOKEN] User already exists, updating instead...');
+
+      // Find the user by email using list (since we can't query by email directly)
+      const { data: usersList } = await supabaseAdmin.auth.admin.listUsers({
+        page: 1,
+        perPage: 1000,
       });
 
-      const { data: existingUserData, error: getUserError } = await (supabaseAdmin.auth as any).admin.getUserById(
-        existingSettings.supabase_user_id
-      );
+      const existingUser = usersList?.users?.find((u: any) => u.email === email);
 
-      console.log('[OAUTH TOKEN] Existing user lookup result:', {
-        foundUser: !!existingUserData?.user,
-        userId: existingUserData?.user?.id,
-        email: existingUserData?.user?.email,
-        hasError: !!getUserError,
-        errorMessage: getUserError?.message,
-      });
-
-      // If user exists, use it and update metadata
-      if (existingUserData?.user && !getUserError) {
-        console.log('[OAUTH TOKEN] ✅ Existing user found, reusing for OAuth reconnection:', {
-          userId: existingUserData.user.id,
-          email: existingUserData.user.email,
-        });
-        user = existingUserData.user;
-
-        // Update user metadata for existing user
-        console.log('[OAUTH TOKEN] Updating metadata for existing user:', user.id);
-        const { error: updateError } = await (supabaseAdmin.auth as any).admin.updateUserById(
-          user.id,
-          { user_metadata: { role: 'admin', merchant_id, business_name } }
-        );
-
-        if (updateError) {
-          console.warn('[OAUTH TOKEN] ⚠️ Failed to update user metadata:', {
-            userId: user.id,
-            error: updateError.message,
-          });
-          // Continue anyway - this is not critical
-        } else {
-          console.log('[OAUTH TOKEN] ✅ User metadata updated successfully');
-        }
-      } else {
-        // User was deleted but merchant_settings still exists - create new user
-        console.log('[OAUTH TOKEN] 🔄 Existing user not found (may have been deleted), will create new user:', {
-          userId: existingSettings.supabase_user_id,
-          error: getUserError?.message,
-        });
-        user = null; // Will be created below
-      }
-    } else {
-      console.log('[OAUTH TOKEN] No existing merchant_settings found, will create new user');
-    }
-
-    // Create new user if needed (either no settings found OR user was deleted)
-    if (!user) {
-      console.log('[OAUTH TOKEN] Creating or retrieving user by email:', email);
-      console.log('[OAUTH TOKEN] Expected password:', password);
-
-      // Strategy: Try to sign in first. If that works, user exists (even if soft-deleted).
-      // This avoids the listUsers pagination and soft-delete issues.
-      const signInClient = createClient(supabaseUrl, serviceRoleKey, {
-        auth: { autoRefreshToken: false, persistSession: false }
-      });
-
-      console.log('[OAUTH TOKEN] Attempting sign-in with email:', email);
-      const { data: signInAttempt, error: signInAttemptError } = await signInClient.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      console.log('[OAUTH TOKEN] Sign-in attempt result:', {
-        hasUser: !!signInAttempt?.user,
-        userId: signInAttempt?.user?.id,
-        hasSession: !!signInAttempt?.session,
-        hasError: !!signInAttemptError,
-        errorMessage: signInAttemptError?.message,
-        errorStatus: (signInAttemptError as any)?.status,
-      });
-
-      if (signInAttempt?.user && !signInAttemptError) {
-        // User exists and credentials work - use this user
-        console.log('[OAUTH TOKEN] ✅ User found via sign-in:', {
-          userId: signInAttempt.user.id,
-          email: signInAttempt.user.email,
-          emailConfirmed: signInAttempt.user.email_confirmed_at,
-        });
-        user = signInAttempt.user;
-
-        // Update metadata for this existing user
-        console.log('[OAUTH TOKEN] Updating metadata for existing user:', user.id);
-        const { error: updateError } = await (supabaseAdmin.auth as any).admin.updateUserById(
-          user.id,
+      if (existingUser) {
+        const { data: updateData, error: updateError } = await (supabaseAdmin.auth as any).admin.updateUserById(
+          existingUser.id,
           {
+            password,
             email_confirm: true,
             user_metadata: { role: 'admin', merchant_id, business_name }
           }
         );
 
         if (updateError) {
-          console.warn('[OAUTH TOKEN] ⚠️ Failed to update user metadata:', {
-            userId: user.id,
-            error: updateError.message,
-          });
-        } else {
-          console.log('[OAUTH TOKEN] ✅ User metadata updated successfully');
+          throw new Error(`Failed to update user: ${updateError.message}`);
         }
+
+        user = updateData?.user;
+        console.log('[OAUTH TOKEN] ✅ User updated');
       } else {
-        // User doesn't exist or credentials don't work - create new user
-        console.log('[OAUTH TOKEN] Sign-in failed, proceeding to create new user:', {
-          email,
-          signInError: signInAttemptError?.message,
-        });
-
-        const { data: createData, error: createError } = await (supabaseAdmin.auth as any).admin.createUser({
-          email,
-          password,
-          email_confirm: true,
-          user_metadata: { role: 'admin', merchant_id, business_name },
-        });
-
-        console.log('[OAUTH TOKEN] Create user result:', {
-          success: !createError,
-          userId: createData?.user?.id,
-          email: createData?.user?.email,
-          errorMessage: createError?.message,
-        });
-
-        if (createError) {
-          console.error('[OAUTH TOKEN] ❌ Failed to create user:', {
-            email,
-            errorMessage: createError.message,
-            errorCode: (createError as any)?.code,
-          });
-
-          // If creation failed due to existing email, the user might exist but password doesn't match
-          // This could happen if merchant_id was reused or password changed
-          if (createError.message?.includes('already been registered') || createError.message?.includes('already exists')) {
-            console.log('[OAUTH TOKEN] 🔄 User email already exists, attempting password reset...');
-
-            // Try to list users to find the existing one (one last attempt)
-            console.log('[OAUTH TOKEN] Listing users to find existing user with email:', email);
-            const { data: usersList } = await supabaseAdmin.auth.admin.listUsers({
-              page: 1,
-              perPage: 1000,
-            });
-
-            console.log('[OAUTH TOKEN] listUsers returned:', {
-              totalUsers: usersList?.users?.length,
-              searchingFor: email,
-            });
-
-            const existingUser = usersList?.users?.find((u: any) => u.email === email);
-
-            if (existingUser) {
-              console.log('[OAUTH TOKEN] ✅ Found existing user in list:', {
-                userId: existingUser.id,
-                email: existingUser.email,
-              });
-
-              // Update password to match expected password
-              console.log('[OAUTH TOKEN] Updating password for existing user:', existingUser.id);
-              const { error: passwordUpdateError } = await (supabaseAdmin.auth as any).admin.updateUserById(
-                existingUser.id,
-                {
-                  password,
-                  email_confirm: true,
-                  user_metadata: { role: 'admin', merchant_id, business_name }
-                }
-              );
-
-              if (passwordUpdateError) {
-                console.error('[OAUTH TOKEN] ❌ Failed to update password:', {
-                  userId: existingUser.id,
-                  error: passwordUpdateError.message,
-                });
-                throw new Error(`Failed to update existing user password: ${passwordUpdateError.message}`);
-              }
-
-              console.log('[OAUTH TOKEN] ✅ Password updated successfully for user:', existingUser.id);
-              user = existingUser;
-            } else {
-              // User exists according to Supabase but we can't find them - likely soft-deleted
-              console.error('[OAUTH TOKEN] ❌ CRITICAL: User email is registered but cannot be found in listUsers', {
-                email,
-                userCount: usersList?.users?.length,
-                likelyReason: 'Soft-deleted user or pagination issue',
-              });
-              throw new Error(
-                'This account cannot be accessed. Please contact support to restore your account or use a different Square merchant account.'
-              );
-            }
-          } else {
-            throw new Error(`Failed to create user: ${createError.message}`);
-          }
-        } else {
-          console.log('[OAUTH TOKEN] ✅ User created successfully:', {
-            userId: createData?.user?.id,
-            email: createData?.user?.email,
-          });
-          user = createData.user;
-        }
+        throw new Error(`User exists but could not be found in list`);
       }
+    } else if (createError) {
+      throw new Error(`Failed to create user: ${createError.message}`);
+    } else {
+      console.log('[OAUTH TOKEN] ✅ User created');
     }
 
     if (!user) {
-      console.error('[OAUTH TOKEN] ❌ CRITICAL: User is null after creation/lookup');
-      throw new Error('User creation/lookup failed');
+      throw new Error('User creation failed');
     }
 
-    console.log('[OAUTH TOKEN] ✅ User ready for session:', {
-      userId: user.id,
-      email: user.email,
-      step: 'creating_session',
-    });
-
-    // Create a new session for the user using admin API (without signing in the admin client)
-    // Note: We'll use a separate client instance for this to avoid affecting the admin client
-    const userClient = createClient(supabaseUrl, serviceRoleKey, {
+    // Now sign in with the anon key to get a session
+    console.log('[OAUTH TOKEN] Signing in with anon key...');
+    const publicSupabase = createClient(supabaseUrl, publishableKey, {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    console.log('[OAUTH TOKEN] Attempting to create session with sign-in:', email);
-    const { data: signInData, error: signInError } = await userClient.auth.signInWithPassword({
+    const { data: signInData, error: signInError } = await publicSupabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    console.log('[OAUTH TOKEN] Session creation attempt result:', {
-      hasSession: !!signInData?.session,
-      sessionUserId: signInData?.session?.user?.id,
-      hasUser: !!signInData?.user,
-      hasError: !!signInError,
-      errorMessage: signInError?.message,
-    });
-
     if (signInError) {
-      console.error('[OAUTH TOKEN] ❌ Failed to create session:', {
+      console.error('[OAUTH TOKEN] ❌ Sign-in failed:', {
         email,
         error: signInError.message,
-        errorCode: (signInError as any)?.status,
       });
       throw new Error(`Failed to create session: ${signInError.message}`);
     }
 
-    const session = signInData.session;
+    const session = signInData?.session;
 
     if (!session) {
-      console.error('[OAUTH TOKEN] ❌ CRITICAL: Session object is null after sign-in');
-      throw new Error('Failed to create session for user');
+      throw new Error('No session returned from sign-in');
     }
 
-    console.log('[OAUTH TOKEN] ✅ Session created successfully:', {
-      userId: session.user?.id,
-      expiresIn: session.expires_in,
-      hasAccessToken: !!session.access_token,
-      hasRefreshToken: !!session.refresh_token,
-    });
+    console.log('[OAUTH TOKEN] ✅ Session created');
 
-    console.log('[OAUTH TOKEN] Upserting merchant_settings:', {
-      supabase_user_id: user.id,
-      square_merchant_id: merchant_id,
-      hasAccessToken: !!access_token,
-    });
-
-    // Use upsert with square_merchant_id as conflict target since it's the unique business key
-    const { data: upsertData, error: upsertError } = await supabaseAdmin
+    // Save merchant settings
+    const { error: upsertError } = await supabaseAdmin
       .from('merchant_settings')
       .upsert(
         {
@@ -494,33 +342,15 @@ export default async function handler(req: any, res: any) {
           square_connected_at: new Date().toISOString(),
         },
         { onConflict: 'square_merchant_id' }
-      )
-      .select();
-
-    console.log('[OAUTH TOKEN] Upsert result:', {
-      success: !upsertError,
-      rowCount: upsertData?.length,
-      errorMessage: upsertError?.message,
-      upsertedData: upsertData?.[0] ? {
-        userId: upsertData[0].supabase_user_id,
-        merchantId: upsertData[0].square_merchant_id,
-        connectedAt: upsertData[0].square_connected_at,
-      } : null,
-    });
+      );
 
     if (upsertError) {
-      console.error('[OAUTH TOKEN] ❌ Failed to upsert merchant_settings:', {
-        userId: user.id,
-        merchantId: merchant_id,
-        error: upsertError.message,
-        errorCode: (upsertError as any)?.code,
-      });
+      console.error('[OAUTH TOKEN] ❌ Failed to upsert merchant_settings:', upsertError.message);
       throw new Error(`Failed to save merchant settings: ${upsertError.message}`);
     }
 
     console.log('[OAUTH TOKEN] ✅ OAuth flow completed successfully');
 
-    // ✅ Return session tokens so frontend can authenticate without re-signing-in
     return res.status(200).json({
       merchant_id,
       business_name,
@@ -544,7 +374,12 @@ export default async function handler(req: any, res: any) {
 
     // Return helpful error message
     const errorMessage = e.message || 'An unknown error occurred during OAuth';
-    return res.status(500).json({
+    const statusCode = e?.status || e?.statusCode || 500;
+    console.log('[OAUTH TOKEN] Returning error response:', {
+      statusCode,
+      message: errorMessage,
+    });
+    return res.status(statusCode).json({
       message: errorMessage,
       timestamp: new Date().toISOString(),
     });

@@ -17,16 +17,15 @@ export default function handler(req: any, res: any) {
   const requestOrigin = resolvedHost ? `${protocol}://${resolvedHost}` : null;
   const requestRedirectUri = requestOrigin ? `${requestOrigin}/square/callback` : null;
 
-  const resolvedRedirectUri = (() => {
-    if (squareRedirectUri && requestRedirectUri && squareRedirectUri !== requestRedirectUri) {
-      console.warn('[OAUTH START] Redirect URI mismatch, using env redirect:', {
-        envRedirect: squareRedirectUri,
-        requestRedirect: requestRedirectUri,
-      });
-      return squareRedirectUri;
-    }
-    return squareRedirectUri || requestRedirectUri;
-  })();
+  const resolvedRedirectUri = squareRedirectUri || requestRedirectUri;
+
+  if (squareRedirectUri && requestRedirectUri && squareRedirectUri !== requestRedirectUri) {
+    console.log('[OAUTH START] Using registered redirect URI from env:', {
+      envRedirect: squareRedirectUri,
+      requestRedirect: requestRedirectUri,
+      note: 'Square only accepts the registered redirect URI, using env variable',
+    });
+  }
 
   const authorizeBase =
     squareEnv === 'sandbox'
@@ -55,11 +54,18 @@ export default function handler(req: any, res: any) {
   if (debugMode) {
     return res.status(200).json({
       ok: true,
+      squareRedirectUri,
+      requestRedirectUri,
       resolvedRedirectUri,
       requestOrigin,
       authorizeBase,
       squareEnv,
       oauthScopes,
+      headers: {
+        'x-forwarded-proto': forwardedProto,
+        'x-forwarded-host': forwardedHost,
+        'host': req.headers['host'],
+      },
     });
   }
 
