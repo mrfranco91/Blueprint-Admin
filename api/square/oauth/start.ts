@@ -54,11 +54,18 @@ export default function handler(req: any, res: any) {
   if (debugMode) {
     return res.status(200).json({
       ok: true,
+      squareRedirectUri,
+      requestRedirectUri,
       resolvedRedirectUri,
       requestOrigin,
       authorizeBase,
       squareEnv,
       oauthScopes,
+      headers: {
+        'x-forwarded-proto': forwardedProto,
+        'x-forwarded-host': forwardedHost,
+        'host': req.headers['host'],
+      },
     });
   }
 
