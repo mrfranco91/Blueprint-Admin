@@ -443,33 +443,32 @@ export default async function handler(req: any, res: any) {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    console.log('[OAUTH TOKEN] Attempting to create session with sign-in:', email);
-    const { data: signInData, error: signInError } = await userClient.auth.signInWithPassword({
-      email,
-      password,
+    console.log('[OAUTH TOKEN] Creating session using admin API for user:', user.id);
+
+    // Use admin API to create a session directly - this is more reliable than sign-in with service role
+    const { data: sessionData, error: sessionError } = await (supabaseAdmin.auth as any).admin.createSession({
+      userId: user.id,
     });
 
-    console.log('[OAUTH TOKEN] Session creation attempt result:', {
-      hasSession: !!signInData?.session,
-      sessionUserId: signInData?.session?.user?.id,
-      hasUser: !!signInData?.user,
-      hasError: !!signInError,
-      errorMessage: signInError?.message,
+    console.log('[OAUTH TOKEN] Session creation result:', {
+      hasSession: !!sessionData?.session,
+      hasUser: !!sessionData?.user,
+      hasError: !!sessionError,
+      errorMessage: sessionError?.message,
     });
 
-    if (signInError) {
-      console.error('[OAUTH TOKEN] ❌ Failed to create session:', {
-        email,
-        error: signInError.message,
-        errorCode: (signInError as any)?.status,
+    if (sessionError) {
+      console.error('[OAUTH TOKEN] ❌ Failed to create session via admin API:', {
+        userId: user.id,
+        error: sessionError.message,
       });
-      throw new Error(`Failed to create session: ${signInError.message}`);
+      throw new Error(`Failed to create session: ${sessionError.message}`);
     }
 
-    const session = signInData.session;
+    const session = sessionData?.session;
 
     if (!session) {
-      console.error('[OAUTH TOKEN] ❌ CRITICAL: Session object is null after sign-in');
+      console.error('[OAUTH TOKEN] ❌ CRITICAL: Session object is null after admin createSession');
       throw new Error('Failed to create session for user');
     }
 
