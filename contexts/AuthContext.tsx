@@ -76,6 +76,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const shouldCheckMerchant =
           !user.user_metadata?.merchant_id &&
           user.user_metadata?.role !== 'admin' &&
+          user.user_metadata?.role !== 'owner' &&
           !user.email?.includes('@square-oauth.blueprint') &&
           !!session.access_token;
 
