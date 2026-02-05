@@ -34,7 +34,7 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     let active = true;
 
-    if (!authInitialized || !user || user.role !== 'stylist') {
+    if (!authInitialized || !user || (user.role !== 'stylist' && user.role !== 'owner')) {
       setForceAdmin(false);
       return () => {
         active = false;
