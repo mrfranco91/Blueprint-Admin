@@ -138,6 +138,10 @@ export default function AdminDashboardV2({ role }: { role: UserRole }) {
       return <MembershipSetup onBack={() => setActiveSettingsView('menu')} />;
     }
 
+    if (activeSettingsView === 'teamAccess') {
+      return <TeamAccessSettings onBack={() => setActiveSettingsView('menu')} />;
+    }
+
     return (
       <div className="p-6 bg-gradient-to-b from-gray-50 to-white min-h-screen">
         <h1 className="text-4xl font-black text-black tracking-tighter mb-8">Settings v2</h1>
