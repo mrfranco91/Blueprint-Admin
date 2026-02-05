@@ -41,6 +41,11 @@ export default function SquareCallback() {
       if (!tokenRes.ok) {
         // Check if email is needed
         if (tokenData?.needsEmail) {
+          // Save the token data so we can use it when retrying with email
+          setSquareTokenData({
+            access_token: tokenData.access_token,
+            merchant_id: tokenData.merchant_id,
+          });
           setNeedsEmail(true);
           return;
         }
