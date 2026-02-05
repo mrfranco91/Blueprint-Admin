@@ -146,6 +146,12 @@ export default async function handler(req: any, res: any) {
       hasAccessToken: !!access_token,
     });
 
+    // Log full token response to see what fields are available
+    console.log('[OAUTH TOKEN] Full token response fields:', {
+      keys: Object.keys(tokenData),
+      fullData: JSON.stringify(tokenData, null, 2),
+    });
+
     console.log('[OAUTH TOKEN] Fetching merchant details from Square:', merchant_id);
     const merchantData = await squareApiFetch(
       `${baseUrl}/v2/merchants/${merchant_id}`,
