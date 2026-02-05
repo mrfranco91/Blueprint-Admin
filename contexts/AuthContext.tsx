@@ -50,6 +50,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const resolvedName = role === 'client'
         ? authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Client'
         : authUser.user_metadata?.business_name || authUser.email?.split('@')[0] || 'Admin';
+
+      console.log('[AuthContext] Setting user with role:', {
+        userId: authUser.id,
+        email: authUser.email,
+        rawMetadataRole: authUser.user_metadata?.role,
+        resolvedRole: role,
+        isSquareOAuthUser: authUser.email?.includes('@square-oauth.blueprint'),
+      });
+
       setUser({
         id: authUser.id,
         name: resolvedName,
