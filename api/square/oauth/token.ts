@@ -177,12 +177,6 @@ export default async function handler(req: any, res: any) {
       hasAccessToken: !!access_token,
     });
 
-    // Log full token response to see what fields are available
-    console.log('[OAUTH TOKEN] Full token response fields:', {
-      keys: Object.keys(tokenData),
-      fullData: JSON.stringify(tokenData, null, 2),
-    });
-
     console.log('[OAUTH TOKEN] Fetching merchant details from Square:', merchant_id);
     const merchantData = await squareApiFetch(
       `${baseUrl}/v2/merchants/${merchant_id}`,
@@ -192,25 +186,28 @@ export default async function handler(req: any, res: any) {
     const business_name =
       merchantData?.merchant?.business_name || 'Admin';
 
-    // Log full merchant data for debugging
-    console.log('[OAUTH TOKEN] Full merchant data:', JSON.stringify(merchantData, null, 2));
-
     // Extract merchant email from Square data - could be in different fields
-    let email = merchantData?.merchant?.email ||
-                merchantData?.merchant?.contact_email ||
-                merchantData?.merchant?.business_email ||
-                body?.email || // Allow email to be provided by frontend
-                req.query?.email; // Or as query param
+    // First check if frontend is providing email
+    let email = body?.email || req.query?.email;
 
+    // If not provided, try to get it from Square merchant data
+    if (!email) {
+      email = merchantData?.merchant?.email ||
+              merchantData?.merchant?.contact_email ||
+              merchantData?.merchant?.business_email;
+    }
+
+    // If still no email, ask the user to provide one
     if (!email) {
       console.log('[OAUTH TOKEN] No email found in Square data, asking user to provide one');
+      // Return the already-exchanged tokens so we don't need to exchange the code again
       return res.status(400).json({
         message: 'Email needed to complete authentication',
         needsEmail: true,
         merchant_id,
         business_name,
         access_token,
-        code, // Return code so frontend can retry with email
+        // NOTE: DO NOT return code - it's single-use and already exchanged!
       });
     }
 
