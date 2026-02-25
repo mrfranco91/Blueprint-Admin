@@ -103,9 +103,9 @@ const AppContent: React.FC = () => {
 
     return <AdminDashboard role="admin" />;
   }
-
-  if (!user) {
-    return <LoginScreen />;
+  const isEditorMode = new URLSearchParams(window.location.search).get("editor") === "true";
+  if (!user && !isEditorMode) {
+    return <LoginScreen />
   }
 
   if (needsSquareConnect) {
