@@ -27,6 +27,7 @@ const PlanWizard: React.FC<PlanWizardProps> = ({
 }) => {
   const [step, setStep] = useState<Step>(initialStep ?? 'select-client');
   const { services: availableServices, clients: globalClients } = useSettings();
+  console.log('[PlanWizard] globalClients from useSettings:', globalClients.length, 'first 3:', globalClients.slice(0,3).map(c => c.name));
   const { user } = useAuth();
   const { savePlan, getPlanForClient } = usePlans();
 

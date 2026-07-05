@@ -5,23 +5,70 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 import AdminDashboard from './components/AdminDashboardV2';
 import LoginScreen from './components/LoginScreen';
 import MissingCredentialsScreen from './components/MissingCredentialsScreen';
+import DesignSystemShowcase from './components/DesignSystemShowcase';
+import SetPasswordScreen from './components/SetPasswordScreen';
+import StylistDashboard from './components/StylistDashboard';
+import JoinScreen from './components/JoinScreen';
 
 import { SettingsProvider } from './contexts/SettingsContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { PlanProvider } from './contexts/PlanContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 import { useSettings } from './contexts/SettingsContext';
-
-import './styles/accessibility.css';
 
 /* ----------------------------- */
 /* App Content (Auth-aware UI)   */
 /* ----------------------------- */
 const AppContent: React.FC = () => {
-  const { user, login, logout, authInitialized } = useAuth();
+  const { user, authInitialized } = useAuth();
   const { needsSquareConnect } = useSettings();
-  const bypassLogin = (import.meta as any).env.VITE_BYPASS_LOGIN === '1';
   const [forceAdmin, setForceAdmin] = useState(false);
+  const [needsPasswordSetup, setNeedsPasswordSetup] = useState(false);
+
+  // Detect invite/recovery token in URL hash or search params
+  useEffect(() => {
+    const hash = window.location.hash;
+    const params = new URLSearchParams(window.location.search);
+    const tokenHash = params.get('token_hash');
+    const type = params.get('type');
+
+    if (hash && (hash.includes('type=invite') || hash.includes('type=recovery'))) {
+      setNeedsPasswordSetup(true);
+      return;
+    }
+
+    // Handle /auth/confirm?token_hash=...&type=invite from email template
+    if (tokenHash && (type === 'invite' || type === 'recovery' || type === 'magiclink')) {
+      (async () => {
+        const { supabase } = await import('./lib/supabase');
+        if (!supabase) return;
+        const { error } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: type === 'invite' ? 'invite' : type === 'recovery' ? 'recovery' : 'magiclink',
+        });
+        if (!error) {
+          // Clear the URL params so they don't persist
+          window.history.replaceState({}, '', '/');
+          setNeedsPasswordSetup(true);
+        } else {
+          console.error('[Auth] Token verification failed:', error.message);
+        }
+      })();
+    }
+  }, []);
+
+  // Show /join screen for stylist PIN-based onboarding
+  const isJoinPage = window.location.pathname === '/join';
+  if (isJoinPage) {
+    return <JoinScreen onComplete={() => { window.location.href = '/'; }} />;
+  }
+
+  // Show design system showcase for styling review
+  const showDesignSystem = window.location.search.includes('design-system');
+  if (showDesignSystem) {
+    return <DesignSystemShowcase />;
+  }
 
   // DEBUG: Log user role when it changes
   useEffect(() => {
@@ -34,14 +81,6 @@ const AppContent: React.FC = () => {
       });
     }
   }, [user]);
-
-  useEffect(() => {
-    if (!bypassLogin || !authInitialized || user) {
-      return;
-    }
-
-    login('admin');
-  }, [authInitialized, bypassLogin, login, user]);
 
   useEffect(() => {
     let active = true;
@@ -86,29 +125,28 @@ const AppContent: React.FC = () => {
 
   if (!authInitialized) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin h-10 w-10 border-4 border-gray-300 border-t-transparent rounded-full" />
+      <div className="flex items-center justify-center h-screen bg-background">
+        <div className="animate-spin h-10 w-10 border-4 border-muted-foreground/30 border-t-primary rounded-full" />
       </div>
     );
   }
 
-  if (bypassLogin) {
-    if (!user) {
-      return (
-        <div className="flex items-center justify-center h-screen">
-          <div className="animate-spin h-10 w-10 border-4 border-gray-300 border-t-transparent rounded-full" />
-        </div>
-      );
-    }
-
-    return <AdminDashboard role="admin" />;
+  if (needsPasswordSetup && user) {
+    return (
+      <SetPasswordScreen
+        onComplete={() => {
+          setNeedsPasswordSetup(false);
+          window.location.hash = '';
+        }}
+      />
+    );
   }
 
   if (!user) {
     return <LoginScreen />;
   }
 
-  if (needsSquareConnect) {
+  if (needsSquareConnect && user.role !== 'stylist') {
     return <MissingCredentialsScreen />;
   }
 
@@ -125,6 +163,8 @@ const AppContent: React.FC = () => {
   switch (user.role) {
     case 'admin':
       return <AdminDashboard role="admin" />;
+    case 'stylist':
+      return <StylistDashboard />;
     default:
       return <LoginScreen />;
   }
@@ -138,14 +178,16 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <SettingsProvider>
-      <AuthProvider>
-        <PlanProvider>
-          <AppContent />
-          <SpeedInsights />
-        </PlanProvider>
-      </AuthProvider>
-    </SettingsProvider>
+    <ThemeProvider>
+      <SettingsProvider>
+        <AuthProvider>
+          <PlanProvider>
+            <AppContent />
+            <SpeedInsights />
+          </PlanProvider>
+        </AuthProvider>
+      </SettingsProvider>
+    </ThemeProvider>
   );
 };
 

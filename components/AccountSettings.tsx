@@ -1,139 +1,222 @@
 import React, { useState } from 'react';
-import type { User, AppTextSize } from '../types';
+import type { User } from '../types';
 import { useSettings } from '../contexts/SettingsContext';
+import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 import { Toggle } from './Toggle';
-import { SettingsIcon, UsersIcon, TrashIcon } from './icons';
-import { ensureAccessibleColor } from '../utils/ensureAccessibleColor';
+import { SaveToast, useSaveToast } from './SaveToast';
+import ThemeToggle from './ThemeToggle';
+import { SettingsIcon, UsersIcon, TrashIcon, DocumentTextIcon, SunIcon } from './icons';
 
 
 interface AccountSettingsProps {
   user: User | null;
   onLogout: () => void;
   subtitle: string;
+  role?: 'admin' | 'stylist';
 }
 
-const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onLogout, subtitle }) => {
+const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onLogout, subtitle, role = 'admin' }) => {
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const { textSize, updateTextSize, pushAlertsEnabled, updatePushAlertsEnabled, branding, saveAll } = useSettings();
+  const { pushAlertsEnabled, updatePushAlertsEnabled, cancellationPolicy, updateCancellationPolicy, textSize, updateTextSize, saveAll } = useSettings();
+  const { toastVisible, showToast, hideToast } = useSaveToast();
+  const { updateUser } = useAuth();
+
+  const isStylist = role === 'stylist';
 
   const handlePasswordChange = () => {
     alert("Password change functionality is not yet connected to the backend.");
     setIsChangingPassword(false);
   };
 
+  const MAX_AVATAR_SIZE = 500 * 1024; // 500 KB
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    if (file.size > MAX_AVATAR_SIZE) {
+      alert('Image is too large. Please choose an image under 500 KB.');
+      e.target.value = '';
+      return;
+    }
+
+    try {
+      const { supabase } = await import('../lib/supabase');
+      if (!supabase) return;
+
+      const ext = file.name.split('.').pop();
+      const path = `avatars/${user.id}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, { upsert: true });
+
+      if (uploadError) {
+        console.warn('[Avatar] Upload failed:', uploadError.message);
+        return;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(path);
+
+      if (urlData?.publicUrl) {
+        updateUser({ avatarUrl: urlData.publicUrl });
+      }
+    } catch (err) {
+      console.warn('[Avatar] Storage upload failed:', err);
+    }
+  };
+
   const isMockUser = !!user?.isMock;
 
   return (
-    <div className="p-4 flex flex-col h-full bg-gray-50 overflow-y-auto pb-48">
-        <h1 className="text-3xl font-black tracking-tighter px-2 pt-2 mb-8" style={{ color: ensureAccessibleColor(branding.accentColor, '#F9FAFB', '#1E3A8A') }}>Account</h1>
+    <div className="bp-page">
+      <h1 className="bp-page-title px-2 pt-2 mb-8">Account</h1>
 
-        <div className="space-y-6 animate-fade-in px-1">
-            <div className="bg-white p-8 rounded-[40px] border-4 border-gray-950 shadow-2xl text-center">
-                {user?.avatarUrl ? (
-                    <img src={user.avatarUrl} className="w-24 h-24 rounded-[32px] mx-auto mb-6 border-4 border-gray-100 shadow-lg object-cover" />
-                ) : (
-                    <div className="w-24 h-24 rounded-[32px] mx-auto mb-6 flex items-center justify-center text-4xl font-black text-white shadow-xl border-4 border-gray-900" style={{ backgroundColor: branding.primaryColor }}>{user?.name?.[0]}</div>
-                )}
-                <h2 className="text-2xl font-black text-gray-950 tracking-tighter leading-none mb-2">{user?.name}</h2>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: ensureAccessibleColor(branding.primaryColor, '#FFFFFF', '#BE123C') }}>{subtitle}</p>
-            </div>
-
-            <div className="bg-white p-6 rounded-[32px] border-4 border-gray-100 shadow-sm space-y-6">
-                <div>
-                    <h3 className="font-black text-sm tracking-widest uppercase text-gray-400 mb-4 flex items-center">
-                        <SettingsIcon className="w-4 h-4 mr-2" />
-                        App Settings
-                    </h3>
-                    <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                            <span className="text-xs font-black uppercase text-gray-500 tracking-widest">Text Size</span>
-                            <div className="flex bg-gray-100 p-1 rounded-xl">
-                                {(['S', 'M', 'L'] as AppTextSize[]).map(sz => (
-                                    <button
-                                        data-ui="button"
-                                        key={sz}
-                                        onClick={() => {
-                                          updateTextSize(sz);
-                                          saveAll();
-                                        }}
-                                        className={`px-4 py-1.5 rounded-lg text-xs font-black ${sz === textSize ? 'bg-white shadow text-gray-900' : 'text-gray-400'}`}
-                                    >
-                                      {sz}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-xs font-black uppercase text-gray-500 tracking-widest">Push Alerts</span>
-                            <Toggle
-                                data-ui="toggle"
-                                checked={pushAlertsEnabled}
-                                onCheckedChange={(checked) => {
-                                  updatePushAlertsEnabled(checked);
-                                  saveAll();
-                                }}
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="pt-6 border-t-2 border-gray-100">
-                    <h3 className="font-black text-sm tracking-widest uppercase text-gray-400 mb-4 flex items-center">
-                        <UsersIcon className="w-4 h-4 mr-2" />
-                        Account Security
-                    </h3>
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Email</label>
-                            {isMockUser && !user?.email ? (
-                                <div className="w-full p-3 bg-gray-50 border-2 border-gray-200 rounded-xl font-bold text-sm text-gray-500 italic">
-                                    Mock account — no email associated
-                                </div>
-                            ) : (
-                                <input data-ui="field" type="email" readOnly value={user?.email || ''} className="w-full p-3 bg-gray-50 border-2 border-gray-200 rounded-xl font-bold text-sm outline-none" />
-                            )}
-                        </div>
-                        {isChangingPassword ? (
-                            <form onSubmit={(e) => { e.preventDefault(); handlePasswordChange(); }} className="space-y-3 pt-2 animate-fade-in">
-                                 <div>
-                                    <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Current Password</label>
-                                    <input data-ui="field" type="password" required className="w-full p-3 bg-white border-2 border-gray-200 rounded-xl font-bold text-sm outline-none" />
-                                </div>
-                                <div>
-                                    <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">New Password</label>
-                                    <input data-ui="field" type="password" required className="w-full p-3 bg-white border-2 border-gray-200 rounded-xl font-bold text-sm outline-none" />
-                                </div>
-                                <div className="flex space-x-2 pt-2">
-                                     <button data-ui="button" type="submit" className="w-full text-white font-black py-3 rounded-xl border-b-4 border-black/20 uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-all" style={{ backgroundColor: branding.accentColor, color: ensureAccessibleColor(branding.accentColor, '#FFFFFF', '#BE123C') }}>Save</button>
-                                     <button data-ui="button" type="button" onClick={() => setIsChangingPassword(false)} className="w-full text-gray-800 font-black py-3 bg-gray-100 rounded-xl border-b-4 border-gray-300 uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-all">Cancel</button>
-                                </div>
-                            </form>
-                        ) : (
-                             <div>
-                                <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Password</label>
-                                {isMockUser ? (
-                                    <>
-                                        <div className="w-full text-left p-3 bg-gray-100 border-2 border-gray-200 rounded-xl font-bold text-sm text-gray-400 cursor-not-allowed">
-                                            Change Password
-                                        </div>
-                                        <p className="text-xs text-gray-500 mt-2 px-1">This feature is disabled for the demo administrator account.</p>
-                                    </>
-                                ) : (
-                                    <button data-ui="button" onClick={() => setIsChangingPassword(true)} className="w-full text-left p-3 bg-gray-100 border-2 border-gray-200 rounded-xl font-bold text-sm text-gray-900 hover:border-gray-400 transition-colors">
-                                        Change Password
-                                    </button>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            <button data-ui="button" onClick={onLogout} className="w-full font-black py-5 rounded-[28px] border-b-8 border-black/20 uppercase tracking-widest text-lg shadow-xl active:scale-95 transition-all flex items-center justify-center space-x-3" style={{ backgroundColor: branding.accentColor, color: ensureAccessibleColor(branding.accentColor, '#FFFFFF', '#FFFFFF') }}>
-                <TrashIcon className="w-6 h-6" />
-                <span>SIGN OUT</span>
-            </button>
+      <div className="space-y-6 animate-fade-in px-1">
+        <div className="bg-card p-8 bp-container-list border border-border shadow-sm text-center">
+          <input type="file" accept="image/*" id="avatar-upload" className="hidden" onChange={handleAvatarChange} />
+          <label htmlFor="avatar-upload" className="cursor-pointer block">
+            {user?.avatarUrl ? (
+              <img src={user.avatarUrl} className="w-20 h-20 rounded-full mx-auto mb-3 border-4 border-primary shadow-lg object-cover hover:opacity-80 transition-opacity" />
+            ) : (
+              <div className="w-20 h-20 rounded-full mx-auto mb-3 flex items-center justify-center text-3xl font-bold shadow-xl border-4 bg-primary text-primary-foreground border-primary hover:opacity-80 transition-opacity">{user?.name?.[0]}</div>
+            )}
+            <span className="bp-caption text-accent">Tap to change photo</span>
+          </label>
+          <h2 className="bp-section-title leading-none mb-2 mt-3">{user?.name}</h2>
+          <p className="bp-overline">{subtitle}</p>
         </div>
+
+        <div className="bg-card p-6 px-8 bp-container-tall border border-border shadow-sm space-y-6">
+          <div>
+            <h3 className="bp-overline mb-4 flex items-center">
+              <SettingsIcon className="w-4 h-4 mr-2" />
+              Notifications
+            </h3>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="bp-overline">Push Alerts</span>
+                <Toggle
+                  data-ui="toggle"
+                  checked={pushAlertsEnabled}
+                  onCheckedChange={(checked) => {
+                    updatePushAlertsEnabled(checked);
+                    saveAll().then(showToast);
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-6 border-t border-border">
+            <h3 className="bp-overline mb-4 flex items-center">
+              <UsersIcon className="w-4 h-4 mr-2" />
+              Account Security
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block bp-caption mb-1">Email</label>
+                {isMockUser && !user?.email ? (
+                  <div className="w-full p-3 border-2 bp-container-compact font-medium text-sm italic bp-input-readonly text-foreground">
+                    Mock account — no email associated
+                  </div>
+                ) : (
+                  <input data-ui="field" type="email" readOnly value={user?.email || ''} className="w-full p-3 font-medium text-sm outline-none bp-input-readonly" />
+                )}
+              </div>
+              {isChangingPassword ? (
+                <form onSubmit={(e) => { e.preventDefault(); handlePasswordChange(); }} className="space-y-3 pt-2 animate-fade-in bp-card-padding-sm bp-container-list border-2 border bg-muted">
+                  <div>
+                    <label className="block bp-caption mb-1">Current Password</label>
+                    <input data-ui="field" type="password" required className="w-full p-3 bg-card border-2 border font-medium text-sm outline-none text-foreground" />
+                  </div>
+                  <div>
+                    <label className="block bp-overline mb-1">New Password</label>
+                    <input data-ui="field" type="password" required className="w-full p-3 bg-card border-2 border font-medium text-sm outline-none text-foreground" />
+                  </div>
+                  <div className="flex space-x-2 pt-2">
+                    <button data-ui="button" type="submit" className="w-full py-3 border-b-4 border-black/20 uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-all bp-btn-secondary">Save</button>
+                    <button data-ui="button" type="button" onClick={() => setIsChangingPassword(false)} className="w-full py-3 border-b-4 uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-all bp-btn-ghost border">Cancel</button>
+                  </div>
+                </form>
+              ) : (
+                <div>
+                  <label className="block bp-overline mb-1">Password</label>
+                  {isMockUser ? (
+                    <>
+                      <div className="w-full text-left p-3 border-2 bp-container-compact font-bold text-sm cursor-not-allowed bp-btn-disabled">
+                        Change Password
+                      </div>
+                      <p className="bp-caption mt-2 px-1">This feature is disabled for the demo administrator account.</p>
+                    </>
+                  ) : (
+                    <button data-ui="button" onClick={() => setIsChangingPassword(true)} className="w-full text-left p-3 border-2 border font-medium text-sm hover:opacity-80 transition-colors bg-muted text-foreground">
+                      Change Password
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Appearance: Theme + Text Size */}
+        <div className="bg-card p-6 px-8 bp-container-tall border border-border shadow-sm space-y-6">
+          <div>
+            <h3 className="bp-overline mb-4 flex items-center">
+              <SunIcon className="w-4 h-4 mr-2" />
+              Appearance
+            </h3>
+            <ThemeToggle />
+          </div>
+          <div className="pt-4 border-t border-border">
+            <h3 className="bp-overline mb-4">Text Size</h3>
+            <div className="flex p-1 rounded-full bg-muted w-fit">
+              {(['S', 'M', 'L'] as const).map(sz => (
+                <button
+                  data-ui="button"
+                  key={sz}
+                  onClick={() => {
+                    updateTextSize(sz);
+                    saveAll().then(showToast);
+                  }}
+                  className={`px-5 py-2 rounded-full text-xs font-bold transition-all ${sz === textSize ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}
+                >
+                  {sz}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Cancellation Policy — admin only */}
+        {!isStylist && (
+          <div className="bg-card p-6 px-8 bp-container-tall border border-border shadow-sm space-y-4">
+            <h3 className="bp-overline mb-2 flex items-center">
+              <DocumentTextIcon className="w-4 h-4 mr-2" />
+              Cancellation Policy
+            </h3>
+            <p className="bp-caption text-muted-foreground">This will be shown to clients when confirming a booking.</p>
+            <textarea
+              value={cancellationPolicy}
+              onChange={(e) => updateCancellationPolicy(e.target.value)}
+              onBlur={() => saveAll().then(showToast)}
+              placeholder="e.g. Cancellations must be made at least 24 hours in advance. Late cancellations may be subject to a fee."
+              rows={4}
+              className="w-full p-4 bg-muted border-2 border bp-container-list font-medium text-sm outline-none resize-none text-foreground placeholder:text-muted-foreground/50"
+            />
+          </div>
+        )}
+
+        <button data-ui="button" onClick={onLogout} className="w-full py-5 border-b-8 border-black/20 uppercase tracking-widest text-lg shadow-xl active:scale-95 transition-all flex items-center justify-center space-x-3 bp-btn-primary">
+          <TrashIcon className="w-6 h-6" />
+          <span>SIGN OUT</span>
+        </button>
+      </div>
+      <SaveToast visible={toastVisible} onDone={hideToast} />
     </div>
   );
 };

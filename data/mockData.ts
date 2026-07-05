@@ -78,14 +78,14 @@ export const TODAY_APPOINTMENTS = [
 ];
 
 export const SERVICE_COLORS: { [key: string]: string } = {
-    'Haircut': '#8884d8',
-    'Full Highlight': '#82ca9d',
-    'Keratin': '#ffc658',
-    'Moisture': '#ff8042',
-    'Clarify': '#00C49F',
-    'Root Touch Up': '#0088FE',
-    'Partial Highlight': '#FFBB28',
-    'Add Tone': '#FF8042',
-    'Repair': '#A4DE6C',
-    'Extensions': '#d0ed57'
+    'Haircut': 'var(--svc-color-1)',
+    'Full Highlight': 'var(--svc-color-2)',
+    'Keratin': 'var(--svc-color-3)',
+    'Moisture': 'var(--svc-color-4)',
+    'Clarify': 'var(--svc-color-5)',
+    'Root Touch Up': 'var(--svc-color-6)',
+    'Partial Highlight': 'var(--svc-color-7)',
+    'Add Tone': 'var(--svc-color-8)',
+    'Repair': 'var(--svc-color-9)',
+    'Extensions': 'var(--svc-color-10)'
 };

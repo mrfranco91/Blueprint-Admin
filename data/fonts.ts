@@ -19,7 +19,6 @@ export const GOOGLE_FONTS_LIST = [
   'Work Sans',
   'Nunito',
   'Fira Sans',
-  'Quicksand',
   'Lora',
   'Karla',
   'Rubik',

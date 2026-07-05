@@ -93,36 +93,32 @@ const MissingCredentialsScreen = () => {
 
       const jwtToken = session.session.access_token;
 
-      // Sync team members
-      const teamRes = await fetch('/api/square/team', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${jwtToken}`,
-        },
-        body: JSON.stringify({ squareAccessToken: token }),
-      });
+      // Sync team, clients, and services via consolidated /api/square/sync
+      const syncHeaders = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${jwtToken}`,
+      };
+      const syncActions = ['team', 'clients', 'services'] as const;
+      const syncErrors: string[] = [];
 
-      const teamText = await teamRes.text();
-      if (!teamRes.ok) {
-        const data = teamText ? JSON.parse(teamText) : {};
-        throw new Error(data?.message || `Team sync failed (${teamRes.status})`);
+      for (const action of syncActions) {
+        try {
+          const res = await fetch('/api/square/sync', {
+            method: 'POST',
+            headers: syncHeaders,
+            body: JSON.stringify({ action, squareAccessToken: token, salon_id: session.session.user.user_metadata?.salon_id }),
+          });
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            syncErrors.push(`${action}: ${data?.message || res.status}`);
+          }
+        } catch (err) {
+          syncErrors.push(`${action}: ${err instanceof Error ? err.message : String(err)}`);
+        }
       }
 
-      // Sync clients
-      const clientRes = await fetch('/api/square/clients', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${jwtToken}`,
-        },
-        body: JSON.stringify({ squareAccessToken: token }),
-      });
-
-      const clientText = await clientRes.text();
-      if (!clientRes.ok) {
-        const data = clientText ? JSON.parse(clientText) : {};
-        throw new Error(data?.message || `Client sync failed (${clientRes.status})`);
+      if (syncErrors.length > 0) {
+        throw new Error(`Sync failures: ${syncErrors.join('; ')}`);
       }
 
       // Save the token to merchant_settings so the app knows Square is connected
@@ -153,12 +149,14 @@ const MissingCredentialsScreen = () => {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center p-6 transition-colors duration-500"
-      style={{ backgroundColor: branding.primaryColor }}
+      className="min-h-screen flex flex-col items-center justify-center p-6 transition-colors duration-500 relative overflow-hidden bg-primary"
     >
-      <div className="bg-white rounded-[40px] shadow-2xl w-full max-w-md overflow-hidden relative border-4 border-gray-950">
+      {/* Blueprint grid background */}
+      <div className="absolute inset-0 opacity-10 bp-grid-bg" />
+
+      <div className="bg-card bp-container-tall shadow-2xl w-full max-w-md relative border-4 border-primary depth-3">
         {/* Header Section with Branding */}
-        <div className="bg-gray-50 p-10 text-center border-b-4" style={{ borderColor: branding.primaryColor }}>
+        <div className="p-10 text-center border-b-4 border-primary bp-page-header">
           {branding.logoUrl ? (
             <img
               src={branding.logoUrl}
@@ -167,23 +165,22 @@ const MissingCredentialsScreen = () => {
             />
           ) : (
             <div
-              className="w-20 h-20 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-xl transform -rotate-3"
-              style={{ backgroundColor: branding.accentColor }}
+              className="w-20 h-20 bp-container-tall mx-auto flex items-center justify-center mb-4 shadow-xl transform -rotate-3 bg-accent"
             >
               <SettingsIcon className="w-10 h-10 text-white" />
             </div>
           )}
-          <h1 className="text-3xl font-black tracking-tighter" style={{ color: branding.primaryColor }}>
+          <h1 className="text-3xl font-bold tracking-tighter bp-title text-primary">
             Connect Square
           </h1>
-          <p className="text-xs font-black uppercase tracking-widest mt-2" style={{ color: branding.primaryColor }}>
+          <p className="bp-overline mt-2">
             Pro Access Required
           </p>
         </div>
 
         {/* Content Section */}
-        <div className="p-10" style={{ backgroundColor: 'rgba(138, 186, 211, 0.25)' }}>
-          <p className="text-center text-sm font-bold mb-8" style={{ color: '#374151' }}>
+        <div className="p-10 bg-primary/5">
+          <p className="text-center text-sm font-bold mb-8 bp-text-secondary">
             Connect your Square account to access the Pro/Admin dashboard.
           </p>
 
@@ -191,7 +188,7 @@ const MissingCredentialsScreen = () => {
             <div className="mb-6">
               <button
                 onClick={startOAuth}
-                className="blueprint-button font-black"
+                className="blueprint-button"
               >
                 Continue with Square OAuth
               </button>
@@ -199,31 +196,39 @@ const MissingCredentialsScreen = () => {
           )}
 
           {(oauthDebug || oauthDebugError) && (
-            <div className="mb-6 rounded-2xl border-2 border-gray-200 bg-white/70 p-4 text-xs font-semibold text-gray-700">
-              <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">OAuth Debug Info</p>
+            <div className="mb-6 bp-container-tall border-2 border bg-card/70 p-4 text-xs font-semibold text-muted-foreground">
+              <p className="bp-overline">OAuth Debug Info</p>
               {oauthDebugError ? (
                 <p className="mt-2 text-red-600">{oauthDebugError}</p>
               ) : (
                 <div className="mt-2 space-y-2">
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Request Origin</p>
-                    <p className="break-all font-mono text-[11px] text-gray-800">{oauthDebug?.requestOrigin || 'Not resolved'}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest bp-label">Request Origin</p>
+                    <p className="break-all font-mono text-[11px] bp-text">
+                      {oauthDebug?.requestOrigin || 'Not resolved'}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Resolved Redirect</p>
-                    <p className="break-all font-mono text-[11px] text-gray-800">{oauthDebug?.resolvedRedirectUri || 'Not resolved'}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest bp-label">Resolved Redirect</p>
+                    <p className="break-all font-mono text-[11px] bp-text">
+                      {oauthDebug?.resolvedRedirectUri || 'Not resolved'}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Env Redirect</p>
-                    <p className="break-all font-mono text-[11px] text-gray-800">{squareRedirectUri || 'Not set'}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest bp-label">Env Redirect</p>
+                    <p className="break-all font-mono text-[11px] bp-text">
+                      {squareRedirectUri || 'Not set'}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Square Environment</p>
-                    <p className="font-mono text-[11px] text-gray-800">{oauthDebug?.squareEnv || 'Unknown'}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest bp-label">Square Environment</p>
+                    <p className="font-mono text-[11px] bp-text">
+                      {oauthDebug?.squareEnv || 'Unknown'}
+                    </p>
                   </div>
                   {oauthDebug?.ok === false && (
                     <p className="text-[11px] font-bold text-red-600">
-                      Missing config: App ID {oauthDebug?.hasAppId ? 'OK' : 'Missing'}, Redirect URI {oauthDebug?.hasRedirectUri ? 'OK' : 'Missing'}
+                      {"Missing config: App ID "}{oauthDebug?.hasAppId ? 'OK' : 'Missing'}{", Redirect URI "}{oauthDebug?.hasRedirectUri ? 'OK' : 'Missing'}
                     </p>
                   )}
                 </div>
@@ -232,14 +237,14 @@ const MissingCredentialsScreen = () => {
           )}
 
           <div className="flex items-center gap-3 mb-6">
-            <div className="flex-1" style={{ height: '2px', backgroundColor: branding.primaryColor }}></div>
-            <span className="text-xs font-semibold" style={{ color: '#374151' }}>or</span>
-            <div className="flex-1" style={{ height: '2px', backgroundColor: branding.primaryColor }}></div>
+            <div className="flex-1 h-0.5 bg-primary" />
+            <span className="text-xs font-semibold text-muted-foreground">or</span>
+            <div className="flex-1 h-0.5 bg-primary" />
           </div>
 
           <form onSubmit={handleTokenSubmit} className="space-y-4">
             <div>
-              <label className="block text-[9px] font-black uppercase tracking-widest mb-2" style={{ color: '#374151' }}>
+              <label className="block bp-overline mb-2">
                 Square Access Token
               </label>
               <input
@@ -247,18 +252,17 @@ const MissingCredentialsScreen = () => {
                 value={token}
                 onChange={(e) => setToken(e.target.value)}
                 placeholder="Paste your Square access token"
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl font-bold text-sm focus:outline-none focus:border-gray-950"
+                className="w-full px-4 py-3 bp-container-compact font-bold text-sm bp-input"
                 disabled={loading}
               />
             </div>
             {error && (
-              <p className="text-red-600 text-xs font-bold text-center bg-red-50 p-3 rounded-lg">{error}</p>
+              <p className="text-red-600 text-xs font-bold text-center bg-red-50 p-3 bp-container-list">{error}</p>
             )}
             <button
               type="submit"
               disabled={loading}
-              className="w-full font-black py-4 rounded-2xl border-4 border-gray-950 uppercase tracking-widest text-sm shadow-lg active:scale-95 transition-all flex items-center justify-center"
-              style={{ backgroundColor: branding.accentColor, color: '#FFFFFF' }}
+              className="w-full py-4 bp-container-compact border-4 border-primary uppercase tracking-widest text-sm shadow-lg active:scale-95 transition-all flex items-center justify-center bg-primary text-primary-foreground"
             >
               {loading ? 'Syncing...' : 'Sync with Token'}
             </button>

@@ -48,12 +48,13 @@ export interface Client {
   membershipTierId?: string;
   // FIX: Added optional source property to resolve TypeScript error in SelectClientStep.tsx where source is used to indicate origin
   source?: string;
+  hasAccount?: boolean; // true if client has a Blueprint account (supabase_user_id is set)
 }
 
 export type Step = 'select-client' | 'select-services' | 'set-dates' | 'set-frequency' | 'loading' | 'summary';
 
 // FIX: Add 'client' to UserRole to resolve type errors in PlanSummaryStep and PlanContext.
-export type UserRole = 'admin' | 'client';
+export type UserRole = 'admin' | 'stylist' | 'client';
 
 export type PlanStatus = 'draft' | 'active' | 'paused' | 'cancelled'; 
 
@@ -80,6 +81,7 @@ export interface GeneratedPlan {
     membershipStatus: MembershipStatus;
     membershipOfferSentAt?: string | null;
     membershipOfferAcceptedAt?: string | null;
+    membershipTier?: MembershipTier | null;
     createdAt: string;
     stylistId: string;
     stylistName: string;

@@ -120,7 +120,7 @@ export default async function handler(req: any, res: any) {
       }
 
       // Sign in to get a valid session
-      const { data: signInData, error: signInError } = await supabaseAdmin.auth.signInWithPassword({ email, password: tempPassword });
+      const { data: signInData, error: signInError } = await (supabaseAdmin.auth as any).signInWithPassword({ email, password: tempPassword });
       if (signInError) {
         console.error('[CREATE SESSION] Sign in failed after password update:', signInError);
         return res.status(500).json({
@@ -133,7 +133,7 @@ export default async function handler(req: any, res: any) {
       console.log('[CREATE SESSION] Creating new user for merchant');
 
       // Create new user
-      const { data: signUpData, error: signUpError } = await supabaseAdmin.auth.signUp({
+      const { data: signUpData, error: signUpError } = await (supabaseAdmin.auth as any).signUp({
         email,
         password: tempPassword,
         options: {
@@ -180,8 +180,46 @@ export default async function handler(req: any, res: any) {
 
       console.log('[CREATE SESSION] Merchant settings upserted for user:', user.id);
 
+      // ── Ensure salon row exists for this admin ──
+      const { data: existingSalon } = await supabaseAdmin
+        .from('salons')
+        .select('id')
+        .eq('owner_user_id', user.id)
+        .maybeSingle();
+
+      let salonId: string | undefined = existingSalon?.id;
+
+      if (!salonId) {
+        const slugBase = (business_name || 'my-salon').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        const slug = `${slugBase}-${user.id.substring(0, 8)}`;
+        const { data: newSalon, error: salonErr } = await supabaseAdmin
+          .from('salons')
+          .insert([{ name: business_name || 'My Salon', slug, owner_user_id: user.id }])
+          .select('id')
+          .single();
+
+        if (!salonErr && newSalon) {
+          salonId = newSalon.id;
+          console.log('[CREATE SESSION] Salon created:', salonId);
+        } else if (salonErr) {
+          console.error('[CREATE SESSION] ⚠️ Failed to create salon (non-fatal):', salonErr.message);
+        }
+      }
+
+      if (salonId) {
+        const { error: memErr } = await supabaseAdmin
+          .from('salon_memberships')
+          .upsert(
+            { user_id: user.id, salon_id: salonId, role: 'owner', status: 'active' },
+            { onConflict: 'user_id,salon_id,role' }
+          );
+        if (memErr) {
+          console.error('[CREATE SESSION] ⚠️ Failed to create owner membership (non-fatal):', memErr.message);
+        }
+      }
+
       // After creating new user, sign them in to get a session
-      const { data: signInData, error: signInError } = await supabaseAdmin.auth.signInWithPassword({ email, password: tempPassword });
+      const { data: signInData, error: signInError } = await (supabaseAdmin.auth as any).signInWithPassword({ email, password: tempPassword });
       if (signInError) {
         console.error('[CREATE SESSION] Failed to sign in new user:', signInError);
         return res.status(500).json({

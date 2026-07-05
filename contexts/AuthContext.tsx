@@ -10,6 +10,7 @@ import { supabase } from '../lib/supabase';
 
 interface AuthContextType {
   user: User | null;
+  updateUser: (updates: Partial<User>) => void;
   login: (role: UserRole, specificId?: string) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
@@ -42,14 +43,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const metadataRole = authUser.user_metadata?.role;
       const role: UserRole = isSquareOAuthUser
         ? 'admin'
-        : metadataRole === 'client'
-          ? 'client'
-          : metadataRole === 'owner'
-            ? 'admin'
-            : 'admin';
+        : metadataRole === 'stylist'
+          ? 'stylist'
+          : metadataRole === 'client'
+            ? 'client'
+            : metadataRole === 'owner'
+              ? 'admin'
+              : 'admin';
       const resolvedName = role === 'client'
         ? authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Client'
-        : authUser.user_metadata?.business_name || authUser.email?.split('@')[0] || 'Admin';
+        : role === 'stylist'
+          ? authUser.user_metadata?.stylist_name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Stylist'
+          : authUser.user_metadata?.business_name || authUser.email?.split('@')[0] || 'Admin';
 
       console.log('[AuthContext] Setting user with role:', {
         userId: authUser.id,
@@ -59,13 +64,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         isSquareOAuthUser: authUser.email?.includes('@square-oauth.blueprint'),
       });
 
-      setUser({
+      const userObj: User = {
         id: authUser.id,
         name: resolvedName,
         role,
         email: authUser.email,
+        avatarUrl: authUser.user_metadata?.avatar_url || undefined,
         isMock: false,
-      });
+      };
+
+      if (role === 'stylist') {
+        userObj.stylistData = {
+          id: authUser.user_metadata?.stylist_id || authUser.id,
+          name: resolvedName,
+          email: authUser.email || '',
+          role: 'Stylist',
+          levelId: authUser.user_metadata?.level_id || 'lvl_1',
+          permissions: authUser.user_metadata?.permissions || {},
+        };
+      }
+
+      setUser(userObj);
 
       setAuthInitialized(true);
     };
@@ -91,7 +110,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         if (shouldCheckMerchant) {
           try {
-            const response = await fetch('/api/square/has-merchant', {
+            const response = await fetch('/api/square/status?action=has-merchant', {
               method: 'GET',
               headers: {
                 'Authorization': `Bearer ${session.access_token}`,
@@ -126,8 +145,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     };
 
+    // Helper: fall back to mock admin when no real session
+    const fallbackToMockOrBypass = () => {
+      const savedMockUser = localStorage.getItem('mock_admin_user');
+      if (savedMockUser) {
+        try {
+          const user = JSON.parse(savedMockUser);
+          if (active) {
+            setUser(user);
+            setAuthInitialized(true);
+          }
+          return;
+        } catch (e) {
+          console.error('Failed to restore mock user session:', e);
+        }
+      }
+
+
+      if (active) setAuthInitialized(true);
+    };
+
+
     if (!supabase) {
-      setAuthInitialized(true);
+      console.log('[AuthContext] No Supabase client');
+      fallbackToMockOrBypass();
       return;
     }
 
@@ -135,7 +176,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     supabase.auth.getSession().then(({ data, error }) => {
       if (error) {
         console.error('[AuthContext] Error getting session:', error);
-        setAuthInitialized(true);
+        fallbackToMockOrBypass();
         return;
       }
 
@@ -147,28 +188,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           hydrateFromSession(resolvedSession);
         });
       } else {
-        console.log('[AuthContext] No session found, checking for mock user');
-        // No real session - check for mock admin session in localStorage
-        const savedMockUser = localStorage.getItem('mock_admin_user');
-        if (savedMockUser) {
-          try {
-            const user = JSON.parse(savedMockUser);
-            if (active) {
-              setUser(user);
-              setAuthInitialized(true);
-            }
-          } catch (e) {
-            console.error('Failed to restore mock user session:', e);
-            setAuthInitialized(true);
-          }
-        } else {
-          console.log('[AuthContext] No session or mock user found');
-          setAuthInitialized(true);
-        }
+        console.log('[AuthContext] No session found');
+        fallbackToMockOrBypass();
       }
     }).catch(err => {
       console.error('[AuthContext] Fatal error during session hydration:', err);
-      setAuthInitialized(true);
+      fallbackToMockOrBypass();
     });
 
     // Listen for any future auth changes
@@ -195,10 +220,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // (Used only for any existing non-Square demo flows.)
   const login = async (role: UserRole, specificId?: string) => {
     if (role === 'admin') {
-      const adminUser = {
+      const adminUser: User = {
         id: specificId || 'admin',
         name: 'Admin',
-        role: 'admin',
+        role: 'admin' as UserRole,
         isMock: true,
       };
       setUser(adminUser);
@@ -222,10 +247,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setAuthInitialized(true);
   };
 
+  const updateUser = async (updates: Partial<User>) => {
+    setUser(prev => prev ? { ...prev, ...updates } : prev);
+
+    // Persist avatar to Supabase auth metadata if it changed
+    // IMPORTANT: Only persist actual URLs, never base64 data URIs — base64 bloats the JWT
+    // and causes QuotaExceededError when Supabase tries to save the session to localStorage
+    if (updates.avatarUrl && supabase && !updates.avatarUrl.startsWith('data:')) {
+      try {
+        await supabase.auth.updateUser({
+          data: { avatar_url: updates.avatarUrl }
+        });
+      } catch (e) {
+        console.warn('[AuthContext] Failed to persist avatar to Supabase:', e);
+      }
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
         user,
+        updateUser,
         login,
         logout,
         isAuthenticated: !!user,

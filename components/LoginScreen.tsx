@@ -1,105 +1,118 @@
-import React from 'react';
-import { useSettings } from '../contexts/SettingsContext';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+import { useTheme } from '../contexts/ThemeContext';
 
 const LoginScreen: React.FC = () => {
-  const { branding } = useSettings();
+  const { setTheme } = useTheme();
+  const [showStylistLogin, setShowStylistLogin] = useState(false);
+
+  useEffect(() => {
+    setTheme('light');
+  }, []);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const startSquareOAuth = () => {
-    // Use server-side OAuth start endpoint for secure state handling
-    // Server sets state in HTTP-only cookie and redirects to Square
     window.location.href = '/api/square/oauth/start';
   };
 
+  const handleStylistLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        setError(signInError.message);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Login failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div
-      className="min-h-screen flex flex-col items-center justify-center p-6 transition-colors duration-500"
-      style={{ backgroundColor: branding.primaryColor }}
-    >
-      <div
-        className="bg-white rounded-[80px] shadow-2xl w-full max-w-md overflow-hidden relative border-4 border-gray-950"
-        style={{
-          "@media (max-width: 991px)": {
-            maxWidth: "656px",
-          },
-        } as any}
-      >
-        <div
-          className="bg-gray-50 p-10 text-center border-b-4"
-          style={{
-            borderColor: branding.primaryColor,
-            "@media (max-width: 991px)": {
-              backgroundImage:
-                "url(https://cdn.builder.io/api/v1/image/assets%2F8d6a989189ff4d9e8633804d5d0dbd86%2F6d20c9ec074b40608799512dc6ed08ca)",
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "center",
-              backgroundSize: "cover",
-              paddingTop: "63px",
-              display: "flex",
-              flexDirection: "column",
-              paddingBottom: "23px",
-            },
-          } as any}
-        >
+    <div className="bp-login-screen">
+      <div className="bp-login-card">
+        <header className="bp-login-logo-wrap">
           <img
-            src="https://cdn.builder.io/api/v1/image/assets%2F8d6a989189ff4d9e8633804d5d0dbd86%2F7093acbcb2ca4ac783c4b84bc621e52f"
-            alt="Blueprint Logo"
-            className="login-logo object-contain mx-auto mb-4"
-            style={{
-              maxWidth: "100%",
-              width: "100%",
-              display: "block",
-              "@media (max-width: 991px)": {
-                maxWidth: "100%",
-                width: "100%",
-              },
-            } as any}
+            src="/logo.png"
+            alt="Blueprint Salon Software"
+            className="bp-login-logo"
           />
+        </header>
 
-          <h1
-            className="text-3xl tracking-tighter"
-            style={{
-              color: branding.primaryColor,
-              fontFamily: "Quicksand, sans-serif",
-              fontWeight: "600",
-              textAlign: "left",
-              "@media (max-width: 991px)": {
-                color: "rgba(11, 52, 88, 1)",
-                fontFamily: "Quicksand, sans-serif",
-                fontWeight: "400",
-                textAlign: "left",
-                margin: "0 auto 0 27px",
-                marginBottom: "-23px",
-              },
-            } as any}
-          >
-            Pro Access
-          </h1>
-        </div>
-
-        <div
-          className="p-10 login-screen-content"
-          style={{
-            backgroundColor: `rgba(${parseInt(branding.primaryColor.slice(1, 3), 16)}, ${parseInt(branding.primaryColor.slice(3, 5), 16)}, ${parseInt(branding.primaryColor.slice(5, 7), 16)}, 0.08)`,
-            marginRight: "-1px",
-            padding: "8px 40px 40px",
-          } as any}
-        >
-
-          <div className="my-8 flex items-center gap-3">
-            <div className="flex-1 h-0.5 bg-gray-200" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Admin access</span>
-            <div className="flex-1 h-0.5 bg-gray-200" />
+        <div className="bp-login-body">
+          <div className="bp-login-divider">
+            <span className="bp-login-divider-line" />
+            <span className="bp-label">Admin Access</span>
+            <span className="bp-login-divider-line" />
           </div>
 
-          <div className="mb-6" style={{ marginBottom: "16px" } as any}>
-            <button
-              onClick={startSquareOAuth}
-              className="blueprint-button font-black square-oauth-button"
-            >
-              Login with Square
-            </button>
+          <button className="bp-btn-primary w-full" onClick={startSquareOAuth}>
+            Login with Square
+          </button>
+
+          <div className="bp-login-divider">
+            <span className="bp-login-divider-line" />
+            <span className="bp-label">Team Access</span>
+            <span className="bp-login-divider-line" />
           </div>
 
+          {!showStylistLogin ? (
+            <div className="bp-login-team">
+              <button className="bp-btn-primary w-full" onClick={() => setShowStylistLogin(true)}>
+                Stylist Login
+              </button>
+              <button
+                type="button"
+                className="bp-login-pin-link"
+                onClick={() => { window.location.href = '/join'; }}
+              >
+                New here? Join with PIN
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleStylistLogin} className="bp-login-form">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
+                className="bp-field"
+                required
+              />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                className="bp-field"
+                required
+              />
+              {error && (
+                <p className="text-destructive text-xs font-semibold text-center">{error}</p>
+              )}
+              <button type="submit" disabled={loading} className="bp-btn-primary w-full">
+                {loading ? 'Signing in...' : 'Sign In'}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowStylistLogin(false); setError(null); }}
+                className="bp-login-pin-link"
+              >
+                Cancel
+              </button>
+            </form>
+          )}
         </div>
       </div>
     </div>

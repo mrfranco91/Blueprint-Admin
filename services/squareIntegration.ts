@@ -16,19 +16,19 @@ export const isSquareTokenMissing = false;
 async function squareApiFetch<T>(path: string, options: { method?: string, body?: any } = {}): Promise<T> {
     const { method = 'GET', body } = options;
 
-    // Get the current Supabase session to pass auth to the proxy
+    // Get the current session to identify the user
     const { data: { session } } = await supabase.auth.getSession();
 
     // Route all Square API calls through the server proxy to avoid CORS issues
     const headers: any = {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'Square-Version': '2025-10-16',
     };
 
-    // If we have a Supabase session, use it; otherwise the proxy will fall back to stored token
-    if (session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.access_token}`;
+    // Send user ID in a small custom header instead of the full JWT
+    // (Supabase JWTs are too large and cause Vercel 494 "header too large" errors)
+    if (session?.user?.id) {
+        headers['X-User-Id'] = session.user.id;
     }
 
     const response = await fetch(`/api/square/proxy?path=${encodeURIComponent(path)}`, {
@@ -186,14 +186,26 @@ export const SquareIntegrationService = {
       const allCustomers: any[] = [];
 
       do {
-          const path = `/v2/customers/list${cursor ? `?cursor=${cursor}` : ''}`;
-          const data: any = await squareApiFetch(path);
+          console.log('[CUSTOMERS] Fetching page, cursor:', cursor ? cursor.substring(0, 20) + '...' : 'none');
+          const body: any = {
+              query: { sort: { field: 'CREATED_AT', order: 'DESC' } },
+              limit: 100,
+          };
+          if (cursor) body.cursor = cursor;
+
+          const data: any = await squareApiFetch('/v2/customers/search', {
+              method: 'POST',
+              body,
+          });
           
           if (data.customers) {
+              console.log('[CUSTOMERS] Got', data.customers.length, 'customers');
               allCustomers.push(...data.customers);
           }
           cursor = data.cursor;
       } while(cursor);
+
+      console.log('[CUSTOMERS] Total customers fetched:', allCustomers.length);
       
       return allCustomers.map((c: any) => ({
         id: c.id,
@@ -238,7 +250,7 @@ export const SquareIntegrationService = {
       startAt: string,
       teamMemberId: string,
       serviceVariationId: string
-  }): Promise<string[]> => {
+  }): Promise<{ startAt: string; teamMemberId: string | null }[]> => {
       const startDate = new Date(params.startAt);
       if (isNaN(startDate.getTime())) throw new Error("Invalid start time passed to Square.");
 
@@ -267,10 +279,10 @@ export const SquareIntegrationService = {
       };
 
       const data: any = await squareApiFetch('/v2/bookings/availability/search', { method: 'POST', body });
-      const slots = (data.availabilities || [])
-          .map((a: any) => a.start_at);
-
-      return slots;
+      return (data.availabilities || []).map((a: any) => ({
+          startAt: a.start_at,
+          teamMemberId: a.appointment_segments?.[0]?.team_member_id ?? null
+      }));
   },
 
   fetchAllBookings: async (locationId: string): Promise<any[]> => {
@@ -301,17 +313,6 @@ export const SquareIntegrationService = {
       if (!locationId) throw new Error("Location ID is required for booking.");
       if (!customerId) throw new Error("Customer ID is required for booking.");
 
-      let resolvedTeamMemberId = teamMemberId;
-      const isInvalidTeamMemberId = !teamMemberId || teamMemberId.startsWith('TM-') || teamMemberId === 'admin';
-
-      if (isInvalidTeamMemberId) {
-          const teamMembers = await SquareIntegrationService.fetchTeam();
-          if (!teamMembers || teamMembers.length === 0) {
-              throw new Error("No bookable team members found in Square to assign this appointment to.");
-          }
-          resolvedTeamMemberId = teamMembers[0].id;
-      }
-      
       const serviceVersionMap = new Map<string, number>();
       services.forEach(s => {
           if (s.id && s.version) {
@@ -325,13 +326,14 @@ export const SquareIntegrationService = {
               start_at: startAt,
               customer_id: customerId,
               appointment_segments: services.map(service => ({
-                  team_member_id: resolvedTeamMemberId,
+                  ...(teamMemberId ? { team_member_id: teamMemberId } : {}),
                   service_variation_id: service.id,
                   service_variation_version: serviceVersionMap.get(service.id) || undefined
               }))
           }
       };
 
+      console.log('[BOOKING] Creating booking with team_member_id:', teamMemberId || '(auto-assign)');
       return await squareApiFetch('/v2/bookings', { method: 'POST', body });
   },
 };

@@ -1,0 +1,436 @@
+@custom-variant dark (&:is(.dark *));
+
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&family=Raleway:wght@100..900&display=swap');
+
+:root {
+  --font-size: 16px;
+
+  /* Blueprint Color Palette - Light Mode */
+  --blueprint-navy: #0B3559;
+  --blueprint-steel: #42708C;
+  --blueprint-sky: #5890A6;
+  --blueprint-frost: #8EB1BF;
+
+  /* Light Mode Theme */
+  --background: #F5F7F9;
+  --foreground: #0B3559;
+  --card: #FFFFFF;
+  --card-foreground: #0B3559;
+  --popover: #FFFFFF;
+  --popover-foreground: #0B3559;
+  --primary: #0B3559;
+  --primary-foreground: #FFFFFF;
+  --secondary: #8EB1BF;
+  --secondary-foreground: #0B3559;
+  --muted: #E8EEF2;
+  --muted-foreground: #42708C;
+  --accent: #5890A6;
+  --accent-foreground: #FFFFFF;
+  --destructive: #C73E3A;
+  --destructive-foreground: #FFFFFF;
+  --border: rgba(11, 53, 89, 0.15);
+  --input: rgba(11, 53, 89, 0.15);
+  --input-background: #FFFFFF;
+  --switch-background: #8EB1BF;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: #5890A6;
+
+  /* Chart colors using the palette */
+  --chart-1: #0B3559;
+  --chart-2: #42708C;
+  --chart-3: #5890A6;
+  --chart-4: #8EB1BF;
+  --chart-5: #6FA3B8;
+
+  --radius: 0.25rem;
+
+  /* Sidebar */
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #0B3559;
+  --sidebar-primary: #0B3559;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #E8EEF2;
+  --sidebar-accent-foreground: #0B3559;
+  --sidebar-border: rgba(11, 53, 89, 0.15);
+  --sidebar-ring: #5890A6;
+
+  /* Blueprint-specific design tokens */
+  --grid-color: rgba(11, 53, 89, 0.08);
+  --grid-line-weight: 1px;
+  --technical-border: rgba(11, 53, 89, 0.25);
+  --blueprint-overlay: rgba(88, 144, 166, 0.05);
+}
+
+.dark {
+  /* Dark Mode Theme - Blueprint inspired with WCAG AA compliant contrast */
+  --background: #0A1419;
+  --foreground: #F5F9FC;
+  --card: #174A6F;
+  --card-foreground: #FFFFFF;
+  --popover: #174A6F;
+  --popover-foreground: #FFFFFF;
+  --primary: #5890A6;
+  --primary-foreground: #FFFFFF;
+  --secondary: #42708C;
+  --secondary-foreground: #FFFFFF;
+  --muted: #1A3A52;
+  --muted-foreground: #C5E0EB;
+  --accent: #5890A6;
+  --accent-foreground: #FFFFFF;
+  --destructive: #FF6B6B;
+  --destructive-foreground: #FFFFFF;
+  --border: rgba(88, 144, 166, 0.3);
+  --input: rgba(88, 144, 166, 0.3);
+  --input-background: #174A6F;
+  --switch-background: #42708C;
+  --ring: #5890A6;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+
+  /* Chart colors for dark mode */
+  --chart-1: #8EB1BF;
+  --chart-2: #5890A6;
+  --chart-3: #42708C;
+  --chart-4: #0B3559;
+  --chart-5: #6FA3B8;
+
+  --sidebar: #174A6F;
+  --sidebar-foreground: #FFFFFF;
+  --sidebar-primary: #5890A6;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #1A3A52;
+  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-border: rgba(88, 144, 166, 0.3);
+  --sidebar-ring: #5890A6;
+
+  /* Blueprint-specific design tokens for dark mode */
+  --grid-color: rgba(88, 144, 166, 0.2);
+  --grid-line-weight: 1px;
+  --technical-border: rgba(142, 177, 191, 0.4);
+  --blueprint-overlay: rgba(88, 144, 166, 0.1);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Blueprint-specific Tailwind tokens */
+  --color-blueprint-navy: var(--blueprint-navy);
+  --color-blueprint-steel: var(--blueprint-steel);
+  --color-blueprint-sky: var(--blueprint-sky);
+  --color-blueprint-frost: var(--blueprint-frost);
+  --color-grid: var(--grid-color);
+  --color-technical-border: var(--technical-border);
+  --color-blueprint-overlay: var(--blueprint-overlay);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-family: 'Comfortaa', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+}
+
+/**
+ * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
+ */
+@layer base {
+  :where(:not(:has([class*=' text-']), :not(:has([class^='text-'])))) {
+    h1 {
+      font-size: var(--text-2xl);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+      letter-spacing: -0.02em;
+      font-family: 'Raleway', sans-serif;
+    }
+
+    h2 {
+      font-size: var(--text-xl);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+      letter-spacing: -0.01em;
+      font-family: 'Raleway', sans-serif;
+    }
+
+    h3 {
+      font-size: var(--text-lg);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+      font-family: 'Raleway', sans-serif;
+    }
+
+    h4 {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+      font-family: 'Raleway', sans-serif;
+    }
+
+    label {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+      letter-spacing: 0.01em;
+      font-family: 'Raleway', sans-serif;
+    }
+
+    button {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+      letter-spacing: 0.01em;
+      font-family: 'Raleway', sans-serif;
+    }
+
+    input {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-normal);
+      line-height: 1.5;
+      font-family: 'Comfortaa', sans-serif;
+    }
+
+    textarea {
+      font-family: 'Comfortaa', sans-serif;
+    }
+
+    p {
+      font-family: 'Comfortaa', sans-serif;
+    }
+  }
+}
+
+html {
+  font-size: var(--font-size);
+}
+
+/* Blueprint Grid Pattern */
+.blueprint-grid {
+  background-image:
+    linear-gradient(var(--grid-color) var(--grid-line-weight), transparent var(--grid-line-weight)),
+    linear-gradient(90deg, var(--grid-color) var(--grid-line-weight), transparent var(--grid-line-weight));
+  background-size: 20px 20px;
+}
+
+.blueprint-grid-large {
+  background-image:
+    linear-gradient(var(--grid-color) var(--grid-line-weight), transparent var(--grid-line-weight)),
+    linear-gradient(90deg, var(--grid-color) var(--grid-line-weight), transparent var(--grid-line-weight)),
+    linear-gradient(var(--technical-border) 2px, transparent 2px),
+    linear-gradient(90deg, var(--technical-border) 2px, transparent 2px);
+  background-size: 20px 20px, 20px 20px, 100px 100px, 100px 100px;
+}
+
+/* Technical border utility */
+.technical-border {
+  border: 1px solid var(--technical-border);
+  position: relative;
+}
+
+.technical-border::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  background: var(--blueprint-overlay);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Blueprint corner decorations */
+.blueprint-corners::before,
+.blueprint-corners::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: var(--technical-border);
+}
+
+.blueprint-corners::before {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid;
+  border-left: 2px solid;
+}
+
+.blueprint-corners::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2px solid;
+  border-right: 2px solid;
+}
+
+/* Modern depth and texture utilities */
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(11, 53, 89, 0.1);
+}
+
+.dark .glass-card {
+  background: rgba(11, 53, 89, 0.3);
+  border: 1px solid rgba(88, 144, 166, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+.depth-1 {
+  box-shadow: 0 1px 3px rgba(11, 53, 89, 0.12), 0 1px 2px rgba(11, 53, 89, 0.08);
+}
+
+.depth-2 {
+  box-shadow: 0 4px 6px rgba(11, 53, 89, 0.12), 0 2px 4px rgba(11, 53, 89, 0.08);
+}
+
+.depth-3 {
+  box-shadow: 0 10px 15px rgba(11, 53, 89, 0.15), 0 4px 6px rgba(11, 53, 89, 0.1);
+}
+
+.depth-4 {
+  box-shadow: 0 20px 25px rgba(11, 53, 89, 0.15), 0 10px 10px rgba(11, 53, 89, 0.08);
+}
+
+.dark .depth-1 {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.dark .depth-2 {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.dark .depth-3 {
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.4), 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.dark .depth-4 {
+  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.5), 0 10px 10px rgba(0, 0, 0, 0.3);
+}
+
+.gradient-overlay {
+  position: relative;
+}
+
+.gradient-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dark .gradient-overlay::before {
+  opacity: 0.1;
+}
+
+.texture-dots {
+  background-image: radial-gradient(circle, var(--grid-color) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.shine-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.shine-effect::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 70%);
+  transform: translateX(-100%);
+  transition: transform 0.6s;
+}
+
+.shine-effect:hover::after {
+  transform: translateX(100%);
+}
+
+.dark .shine-effect::after {
+  background: linear-gradient(45deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.05) 50%,
+      transparent 70%);
+}
+
+.elevated-card {
+  transform: translateY(0);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.elevated-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(11, 53, 89, 0.18), 0 6px 12px rgba(11, 53, 89, 0.12);
+}
+
+.dark .elevated-card:hover {
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4), 0 6px 12px rgba(88, 144, 166, 0.2);
+}
+
+.glow-primary {
+  box-shadow: 0 0 20px rgba(11, 53, 89, 0.3);
+}
+
+.dark .glow-primary {
+  box-shadow: 0 0 20px rgba(88, 144, 166, 0.4);
+}
+
+.glow-accent {
+  box-shadow: 0 0 20px rgba(88, 144, 166, 0.3);
+}
+
+.dark .glow-accent {
+  box-shadow: 0 0 20px rgba(142, 177, 191, 0.4);
+}

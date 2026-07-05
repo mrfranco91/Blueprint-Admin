@@ -1,5 +1,7 @@
 {
     "recommendations": [
-        "rajithadisanayaka.react-codebridge"
+        "rajithadisanayaka.react-codebridge",
+        "kakumei.ts-debug",
+        "github.copilot-chat"
     ]
 }

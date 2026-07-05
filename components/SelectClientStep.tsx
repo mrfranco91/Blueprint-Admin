@@ -1,9 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import type { Client } from '../types';
-import { PlusIcon, UsersIcon, RefreshIcon } from './icons';
+import { PlusIcon, UsersIcon, RefreshIcon, ChevronLeftIcon } from './icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useSettings } from '../contexts/SettingsContext';
-import { ensureAccessibleColor } from '../utils/ensureAccessibleColor';
 
 interface SelectClientStepProps {
   clients: any[]; // raw Supabase rows
@@ -24,20 +23,20 @@ const SelectClientStep: React.FC<SelectClientStepProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { user } = useAuth();
-  const { createClient, branding } = useSettings();
+  const { createClient } = useSettings();
 
   const isAdmin = user?.role === 'admin';
 
-  // ✅ NORMALIZE DB ROWS → UI SHAPE
+  console.log('[SelectClientStep] propClients received:', propClients?.length ?? 0, 'first 2:', (propClients || []).slice(0,2).map(c => ({ id: c.id, name: c.name, avatarUrl: c.avatarUrl, avatar_url: (c as any).avatar_url })));
   const clients: Client[] = useMemo(() => {
     return (propClients || []).map((c: any) => ({
       id: c.id,
       name: c.name,
       email: c.email,
       phone: c.phone,
-      avatarUrl: c.avatar_url, // FIX
-      source: 'square',        // FIX
-      historicalData: [],      // Ensure required field from Client type is present
+      avatarUrl: c.avatar_url || c.avatarUrl,
+      source: 'square',
+      historicalData: [],
     }));
   }, [propClients]);
 
@@ -77,18 +76,24 @@ const SelectClientStep: React.FC<SelectClientStepProps> = ({
 
   if (isCreating) {
     return (
-      <div className="flex flex-col h-full p-4 pb-12 bg-white">
+      <div className="flex flex-col h-full bg-card">
+        <div className="pt-3 pl-3 flex-shrink-0">
+          <button onClick={() => setIsCreating(false)} className="flex items-center gap-1 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">
+            <ChevronLeftIcon className="w-4 h-4" />
+            Back
+          </button>
+        </div>
         <div className="text-center p-4">
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">
+          <h1 className="text-2xl font-bold mb-1 text-foreground">
             Create New Client
           </h1>
-          <p className="text-sm" style={{ color: '#374151' }}>
+          <p className="text-sm text-muted-foreground">
             This client will be saved to your database.
           </p>
         </div>
         <form onSubmit={handleCreateClient} className="p-4 space-y-4">
           <div>
-            <label className="block text-xs font-bold mb-1" style={{ color: '#374151' }}>
+            <label className="block bp-overline mb-1">
               Full Name
             </label>
             <input
@@ -96,11 +101,11 @@ const SelectClientStep: React.FC<SelectClientStepProps> = ({
               value={newName}
               onChange={e => setNewName(e.target.value)}
               required
-              className="w-full p-3 border border-gray-300 rounded-lg outline-none focus:border-brand-accent"
+              className="w-full p-3 border border bp-container-compact outline-none text-foreground focus:border-sky"
             />
           </div>
           <div>
-            <label className="block text-xs font-bold mb-1" style={{ color: '#374151' }}>
+            <label className="block bp-overline mb-1">
               Email Address
             </label>
             <input
@@ -108,39 +113,23 @@ const SelectClientStep: React.FC<SelectClientStepProps> = ({
               value={newEmail}
               onChange={e => setNewEmail(e.target.value)}
               required
-              className="w-full p-3 border border-gray-300 rounded-lg outline-none focus:border-brand-accent"
+              className="w-full p-3 border border bp-container-compact outline-none text-foreground focus:border-sky"
             />
           </div>
           {createError && (
-            <p className="text-red-500 text-sm font-bold">{createError}</p>
+            <p className="text-red-500 text-sm font-medium">{createError}</p>
           )}
-          <div className="pt-4 space-y-2">
+          <div className="pt-4">
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full font-bold py-3 px-4 rounded-full shadow-lg transition-all active:scale-95"
-              style={{
-                backgroundColor: branding.secondaryColor,
-                color: ensureAccessibleColor(
-                  '#FFFFFF',
-                  branding.secondaryColor,
-                  '#1F2937'
-                ),
-              }}
+              className="w-full font-bold py-3 px-4 bp-container-compact shadow-lg transition-all active:scale-95 bg-secondary text-secondary-foreground"
             >
               {isSubmitting ? (
                 <RefreshIcon className="w-5 h-5 animate-spin mx-auto" />
               ) : (
                 'Save and Continue'
               )}
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsCreating(false)}
-              className="w-full font-bold py-2"
-              style={{ color: '#374151' }}
-            >
-              Cancel
             </button>
           </div>
         </form>
@@ -149,9 +138,13 @@ const SelectClientStep: React.FC<SelectClientStepProps> = ({
   }
 
   return (
-    <div className="flex flex-col h-full pb-12">
-      <div className="p-4 bg-white border-b border-gray-100">
-        <h1 className="text-2xl font-bold text-center mb-2 tracking-tighter text-gray-900">
+    <div className="flex flex-col h-full">
+      <div className="p-4 bg-card border-b border relative">
+        <button onClick={onBack} className="absolute top-4 left-4 flex items-center gap-1 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">
+          <ChevronLeftIcon className="w-4 h-4" />
+          Back
+        </button>
+        <h1 className="text-2xl font-bold text-center mb-2 tracking-tighter text-foreground">
           Select Client
         </h1>
         <div className="relative">
@@ -160,72 +153,55 @@ const SelectClientStep: React.FC<SelectClientStepProps> = ({
             placeholder="Search clients..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full p-3 pl-10 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:border-brand-accent transition-all"
+            className="w-full p-3 pl-10 border border bp-container-compact outline-none bg-muted text-foreground focus:bg-card focus:border-sky transition-all"
           />
-          <div className="absolute left-3 top-3.5" style={{ color: '#374151' }}>
+          <div className="absolute left-3 top-3.5 text-muted-foreground">
             <UsersIcon className="w-5 h-5" />
           </div>
         </div>
       </div>
 
-      <div className="flex-grow overflow-y-auto p-4 space-y-3 bg-brand-bg">
-        {isAdmin && (
-          <button
-            onClick={() => setIsCreating(true)}
-            className="w-full p-4 rounded-xl font-bold mb-4 shadow-md flex items-center justify-center active:scale-95 transition-all"
-            style={{
-              backgroundColor: branding.accentColor,
-              color: ensureAccessibleColor(
-                '#FFFFFF',
-                branding.accentColor,
-                '#1F2937'
-              ),
-            }}
-          >
-            <PlusIcon className="w-5 h-5 mr-2" />
-            Create New Client
-          </button>
-        )}
+      <div className="flex-grow overflow-y-auto px-4 pt-4 pb-nav space-y-3 bg-background">
+        <button
+          onClick={() => setIsCreating(true)}
+          className="w-full p-4 bp-container-compact font-bold mb-4 shadow-md flex items-center justify-center active:scale-95 transition-all bg-accent text-accent-foreground"
+        >
+          <PlusIcon className="w-5 h-5 mr-2" />
+          Create New Client
+        </button>
 
         {filteredClients.length === 0 ? (
           <div className="text-center py-10">
-            <p className="font-bold" style={{ color: '#374151' }}>No clients found.</p>
+            <p className="font-bold text-muted-foreground">
+              {searchTerm ? 'No clients match your search.' : 'No clients yet — create one above!'}
+            </p>
           </div>
         ) : (
           filteredClients.map(client => (
             <button
               key={client.id}
               onClick={() => onSelect(client)}
-              className="w-full bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex items-center hover:border-gray-300 transition-all active:scale-[0.98]"
+              className="w-full bg-card p-3 bp-container-list shadow-sm border border flex items-center transition-all active:scale-[0.98] elevated-card"
             >
               <img
                 src={client.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(client.name)}&background=random`}
                 alt={client.name}
-                className="w-12 h-12 rounded-full mr-4 border border-gray-100"
+                className="w-12 h-12 rounded-full mr-4 border border"
               />
               <div className="flex-grow text-left">
-                <h3 className="font-bold text-gray-900 leading-tight">{client.name}</h3>
-                <p className="text-[10px] font-black uppercase tracking-widest mt-0.5" style={{ color: '#6B7280' }}>
+                <h3 className="font-bold leading-tight text-foreground">{client.name}</h3>
+                <p className="bp-caption mt-0.5">
                   Source: {client.source}
                 </p>
               </div>
-              <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-gray-100" style={{ color: '#374151' }}>
-                  <PlusIcon className="w-4 h-4" />
+              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-muted text-muted-foreground">
+                <PlusIcon className="w-4 h-4" />
               </div>
             </button>
           ))
         )}
       </div>
 
-      <div className="p-4 bg-white border-t border-gray-100">
-        <button
-          onClick={onBack}
-          className="w-full bg-gray-100 font-bold py-3 rounded-full hover:bg-gray-200 transition-colors"
-          style={{ color: '#374151' }}
-        >
-          Cancel
-        </button>
-      </div>
     </div>
   );
 };

@@ -211,6 +211,42 @@ export default async function handler(req: any, res: any) {
               merchantData?.merchant?.business_email;
     }
 
+    // Always fetch team members to: (a) find owner email if needed, (b) get owner team_member_id for bookings
+    let ownerTeamMemberId: string | undefined;
+    console.log('[OAUTH TOKEN] Fetching team members for owner info...');
+    try {
+      const teamData = await squareApiFetch(
+        `${baseUrl}/v2/team-members/search`,
+        access_token,
+        {
+          method: 'POST',
+          body: JSON.stringify({ query: { filter: {} }, limit: 100 }),
+        }
+      );
+      const members = (teamData as any)?.team_members || [];
+      console.log('[OAUTH TOKEN] Found', members.length, 'team members');
+
+      // Store the owner's team member ID for booking purposes
+      const ownerMember = members.find((m: any) => m.is_owner);
+      if (ownerMember) {
+        ownerTeamMemberId = ownerMember.id;
+        console.log('[OAUTH TOKEN] Owner team member ID:', ownerTeamMemberId);
+      }
+
+      // If we still need an email, try to get it from team members
+      if (!email) {
+        const owner = members.find((m: any) => m.is_owner && m.email_address);
+        const anyWithEmail = members.find((m: any) => m.email_address);
+        const teamMember = owner || anyWithEmail;
+        if (teamMember?.email_address) {
+          email = teamMember.email_address;
+          console.log('[OAUTH TOKEN] Found email from team members API:', email);
+        }
+      }
+    } catch (teamErr) {
+      console.warn('[OAUTH TOKEN] Team members lookup failed:', teamErr);
+    }
+
     // If still no email, ask the user to provide one
     if (!email) {
       console.log('[OAUTH TOKEN] No email found in Square data, asking user to provide one');
@@ -268,7 +304,7 @@ export default async function handler(req: any, res: any) {
       console.log('[OAUTH TOKEN] User already exists, updating instead...');
 
       // Find the user by email using list (since we can't query by email directly)
-      const { data: usersList } = await supabaseAdmin.auth.admin.listUsers({
+      const { data: usersList } = await (supabaseAdmin.auth as any).admin.listUsers({
         page: 1,
         perPage: 1000,
       });
@@ -304,49 +340,69 @@ export default async function handler(req: any, res: any) {
       throw new Error('User creation failed');
     }
 
-    // Now sign in with the anon key to get a session
-    console.log('[OAUTH TOKEN] Signing in with anon key...');
-    const publicSupabase = createClient(supabaseUrl, publishableKey, {
-      auth: { autoRefreshToken: false, persistSession: false }
-    });
+    console.log('[OAUTH TOKEN] ✅ User ready for client-side sign-in');
 
-    const { data: signInData, error: signInError } = await publicSupabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (signInError) {
-      console.error('[OAUTH TOKEN] ❌ Sign-in failed:', {
-        email,
-        error: signInError.message,
-      });
-      throw new Error(`Failed to create session: ${signInError.message}`);
+    // Save merchant settings (include owner team member ID if found)
+    const merchantUpsertData: any = {
+      supabase_user_id: user.id,
+      square_merchant_id: merchant_id,
+      square_access_token: access_token,
+      square_connected_at: new Date().toISOString(),
+    };
+    if (ownerTeamMemberId) {
+      merchantUpsertData.owner_team_member_id = ownerTeamMemberId;
     }
-
-    const session = signInData?.session;
-
-    if (!session) {
-      throw new Error('No session returned from sign-in');
-    }
-
-    console.log('[OAUTH TOKEN] ✅ Session created');
-
-    // Save merchant settings
     const { error: upsertError } = await supabaseAdmin
       .from('merchant_settings')
-      .upsert(
-        {
-          supabase_user_id: user.id,
-          square_merchant_id: merchant_id,
-          square_access_token: access_token,
-          square_connected_at: new Date().toISOString(),
-        },
-        { onConflict: 'square_merchant_id' }
-      );
+      .upsert(merchantUpsertData, { onConflict: 'square_merchant_id' });
 
     if (upsertError) {
       console.error('[OAUTH TOKEN] ❌ Failed to upsert merchant_settings:', upsertError.message);
       throw new Error(`Failed to save merchant settings: ${upsertError.message}`);
+    }
+
+    // ── Ensure salon row exists for this admin ──
+    let salonId: string | undefined;
+    const { data: existingSalon } = await supabaseAdmin
+      .from('salons')
+      .select('id')
+      .eq('owner_user_id', user.id)
+      .maybeSingle();
+
+    if (existingSalon) {
+      salonId = existingSalon.id;
+      console.log('[OAUTH TOKEN] ✅ Existing salon found:', salonId);
+    } else {
+      const slugBase = (business_name || 'my-salon').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      const slug = `${slugBase}-${user.id.substring(0, 8)}`;
+      const { data: newSalon, error: salonErr } = await supabaseAdmin
+        .from('salons')
+        .insert([{ name: business_name || 'My Salon', slug, owner_user_id: user.id }])
+        .select('id')
+        .single();
+
+      if (salonErr) {
+        console.error('[OAUTH TOKEN] ⚠️ Failed to create salon (non-fatal):', salonErr.message);
+      } else {
+        salonId = newSalon?.id;
+        console.log('[OAUTH TOKEN] ✅ Salon created:', salonId);
+      }
+    }
+
+    // ── Ensure owner membership exists ──
+    if (salonId) {
+      const { error: memErr } = await supabaseAdmin
+        .from('salon_memberships')
+        .upsert(
+          { user_id: user.id, salon_id: salonId, role: 'owner', status: 'active' },
+          { onConflict: 'user_id,salon_id,role' }
+        );
+
+      if (memErr) {
+        console.error('[OAUTH TOKEN] ⚠️ Failed to create owner membership (non-fatal):', memErr.message);
+      } else {
+        console.log('[OAUTH TOKEN] ✅ Owner membership ensured');
+      }
     }
 
     console.log('[OAUTH TOKEN] ✅ OAuth flow completed successfully');
@@ -355,12 +411,13 @@ export default async function handler(req: any, res: any) {
       merchant_id,
       business_name,
       access_token,
-      supabase_session: session
-        ? {
-            access_token: session.access_token,
-            refresh_token: session.refresh_token,
-          }
-        : null,
+      salon_id: salonId,
+      // Return credentials for client-side signInWithPassword
+      // (server-side sessions produce refresh tokens that fail client-side)
+      supabase_auth: {
+        email,
+        password,
+      },
     });
 
   } catch (e: any) {

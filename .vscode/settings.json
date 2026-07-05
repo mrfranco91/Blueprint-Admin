@@ -1,5 +1,6 @@
 {
-  "files.readonlyInclude": {
-    "**/*": true
-  }
+    "github.copilot.chat.agent.autoFix": true,
+    "github.copilot.chat.languageContext.typescript.enabled": true,
+    "github.copilot.chat.languageContext.inline.typescript.enabled": true,
+    "github.copilot.chat.languageContext.fix.typescript.enabled": true
 }

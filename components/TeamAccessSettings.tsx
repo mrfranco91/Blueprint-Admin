@@ -3,6 +3,7 @@ import { useSettings } from '../contexts/SettingsContext';
 import { supabase } from '../lib/supabase';
 import { ChevronLeftIcon, ChevronRightIcon } from './icons';
 import { Toggle } from './Toggle';
+import { SaveToast, useSaveToast } from './SaveToast';
 import type { Stylist, StylistLevel } from '../types';
 
 interface TeamAccessSettingsProps {
@@ -11,14 +12,12 @@ interface TeamAccessSettingsProps {
 
 export default function TeamAccessSettings({ onBack }: TeamAccessSettingsProps) {
   const { levels, updateLevels, stylists, updateStylists, saveAll } = useSettings();
+  const { toastVisible, showToast, hideToast } = useSaveToast();
   const [editingStylist, setEditingStylist] = useState<Stylist | null>(null);
-  const [showInviteForm, setShowInviteForm] = useState(false);
-  const [inviteName, setInviteName] = useState('');
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteLevelId, setInviteLevelId] = useState('lvl_1');
-  const [inviteLoading, setInviteLoading] = useState(false);
-  const [inviteError, setInviteError] = useState<string | null>(null);
-  const [inviteStatus, setInviteStatus] = useState<string | null>(null);
+  const [pinLoading, setPinLoading] = useState(false);
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [pinLoadingStylistId, setPinLoadingStylistId] = useState<string | null>(null);
+  const [pinMap, setPinMap] = useState<Record<string, string>>({});
   const [stylistSaveLoading, setStylistSaveLoading] = useState(false);
   const [stylistSaveError, setStylistSaveError] = useState<string | null>(null);
 
@@ -62,72 +61,43 @@ export default function TeamAccessSettings({ onBack }: TeamAccessSettingsProps) 
     const nextLevel: StylistLevel = {
       id: `lvl_${Date.now()}`,
       name: 'New Tier',
-      color: '#111827',
+      color: '#0B3559',
       order: levels.length + 1,
       defaultPermissions: fallbackPermissions,
     };
     updateLevels([...levels, nextLevel]);
   };
 
-  const handleInviteStylist = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setInviteError(null);
-    setInviteStatus(null);
+  const handleGeneratePin = async (stylist: Stylist) => {
+    if (!supabase) return;
 
-    if (!inviteName.trim() || !inviteEmail.trim()) {
-      setInviteError('Enter a name and email for the stylist.');
-      return;
-    }
-
-    if (!supabase) {
-      setInviteError('Supabase is not configured.');
-      return;
-    }
-
-    setInviteLoading(true);
+    setPinLoadingStylistId(stylist.id);
+    setPinLoading(true);
+    setPinError(null);
 
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const accessToken = sessionData.session?.access_token;
+      if (!accessToken) throw new Error('Please log in again.');
 
-      if (!accessToken) {
-        throw new Error('Please log in again to send invites.');
-      }
-
-      const response = await fetch('/api/stylists/invite', {
+      const response = await fetch('/api/stylists', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({
-          name: inviteName.trim(),
-          email: inviteEmail.trim(),
-          levelId: inviteLevelId || levels[0]?.id || 'lvl_1',
-        }),
+        body: JSON.stringify({ action: 'generate-pin', squareTeamMemberId: stylist.id, name: stylist.name, email: stylist.email }),
       });
 
       const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data?.message || 'Failed to send invite.');
-      }
+      if (!response.ok) throw new Error(data?.message || 'Failed to generate PIN.');
 
-      if (data?.stylist) {
-        const nextStylists = stylists.some(s => s.id === data.stylist.id)
-          ? stylists.map(s => (s.id === data.stylist.id ? data.stylist : s))
-          : [...stylists, data.stylist];
-        updateStylists(nextStylists);
-      }
-
-      setInviteStatus('Invite sent.');
-      setInviteName('');
-      setInviteEmail('');
-      setInviteLevelId(levels[0]?.id || 'lvl_1');
-      setShowInviteForm(false);
+      setPinMap(prev => ({ ...prev, [stylist.id]: data.pin }));
+      setPinLoadingStylistId(null);
     } catch (e: any) {
-      setInviteError(e.message || 'Failed to send invite.');
+      setPinError(e.message || 'Failed to generate PIN.');
     } finally {
-      setInviteLoading(false);
+      setPinLoading(false);
     }
   };
 
@@ -165,21 +135,21 @@ export default function TeamAccessSettings({ onBack }: TeamAccessSettingsProps) 
   const renderStylists = () => (
     <div className="space-y-4 pb-8">
       {stylists.length === 0 ? (
-        <div className="p-4 text-center text-gray-500 text-sm font-bold bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+        <div className="p-4 text-center text-sm font-medium bp-container-compact border-2 border-dashed text-foreground bg-muted border">
           No stylists on your team yet. Invite one to get started.
         </div>
       ) : (
         stylists.map((stylist) => {
           const isEditing = editingStylist?.id === stylist.id;
-          const levelColor = levels.find(l => l.id === stylist.levelId)?.color || '#111827';
+          const levelColor = levels.find(l => l.id === stylist.levelId)?.color || '#0B3559';
 
           return (
-            <div key={stylist.id} className="rounded-2xl border-2 border-gray-100 p-4 bg-white">
+            <div key={stylist.id} className="bp-container-tall border-4 border bp-card-padding-md bg-card">
               {isEditing ? (
                 <>
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     <div>
-                      <label className="block text-[9px] font-black uppercase tracking-widest text-gray-500 mb-2">Level</label>
+                      <label className="block bp-overline mb-2">Level</label>
                       <select
                         data-ui="field"
                         value={stylist.levelId || ''}
@@ -187,7 +157,7 @@ export default function TeamAccessSettings({ onBack }: TeamAccessSettingsProps) 
                           const newStylist = { ...stylist, levelId: e.target.value };
                           setEditingStylist(newStylist);
                         }}
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl font-bold text-sm focus:outline-none focus:border-gray-950"
+                        className="w-full px-4 py-3 border-2 border font-medium text-sm text-foreground focus:outline-none focus:border-sky"
                       >
                         {levels.map((level) => (
                           <option key={level.id} value={level.id}>
@@ -197,9 +167,9 @@ export default function TeamAccessSettings({ onBack }: TeamAccessSettingsProps) 
                       </select>
                     </div>
 
-                    <div className="space-y-3">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-gray-500">Custom permissions</p>
-                      <div className="space-y-2">
+                    <div className="space-y-4">
+                      <p className="bp-overline text-center">Custom permissions</p>
+                      <div className="space-y-3">
                         {levelPermissionKeys.map((permKey) => {
                           const levelPerms = resolveLevelDefaults(stylist.levelId || '');
                           const levelDefault = levelPerms[permKey];
@@ -207,8 +177,8 @@ export default function TeamAccessSettings({ onBack }: TeamAccessSettingsProps) 
                           const currentValue = stylistOverride !== undefined ? stylistOverride : levelDefault;
 
                           return (
-                            <div key={permKey} className="flex items-center justify-between">
-                              <label className="text-xs font-bold text-gray-700 capitalize">
+                            <div key={permKey} className="flex items-center justify-between bp-card-padding-sm bp-container-compact bg-muted border-2 border">
+                              <label className="text-xs font-medium capitalize text-foreground flex-1">
                                 {permKey.replace(/([A-Z])/g, ' $1').trim()}
                               </label>
                               <Toggle
@@ -231,7 +201,7 @@ export default function TeamAccessSettings({ onBack }: TeamAccessSettingsProps) 
                     </div>
 
                     {stylistSaveError && (
-                      <p className="text-xs text-red-600 font-bold">{stylistSaveError}</p>
+                      <p className="text-xs text-red-600 font-medium text-center">{stylistSaveError}</p>
                     )}
 
                     <div className="flex gap-2">
@@ -239,14 +209,14 @@ export default function TeamAccessSettings({ onBack }: TeamAccessSettingsProps) 
                         data-ui="button"
                         onClick={() => persistStylistUpdates(editingStylist!)}
                         disabled={stylistSaveLoading}
-                        className="flex-1 px-4 py-3 bg-gray-950 text-white font-black rounded-2xl text-xs uppercase tracking-widest disabled:opacity-50"
+                        className="flex-1 px-4 py-3 text-xs uppercase tracking-widest disabled:opacity-50 bp-btn-primary"
                       >
                         {stylistSaveLoading ? 'Saving...' : 'Save'}
                       </button>
                       <button
                         data-ui="button"
                         onClick={() => setEditingStylist(null)}
-                        className="flex-1 px-4 py-3 bg-gray-100 text-gray-950 font-black rounded-2xl text-xs uppercase tracking-widest"
+                        className="flex-1 px-4 py-3 text-xs uppercase tracking-widest bp-btn-ghost"
                       >
                         Cancel
                       </button>
@@ -255,28 +225,68 @@ export default function TeamAccessSettings({ onBack }: TeamAccessSettingsProps) 
                 </>
               ) : (
                 <>
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center justify-between mb-2">
                     <div className="flex-1">
-                      <p className="font-black text-gray-950 text-sm">{stylist.name}</p>
-                      <p className="text-xs text-gray-500 font-bold">{stylist.email}</p>
+                      <p className="font-semibold text-sm text-foreground">{stylist.name}</p>
+                      <p className="text-xs text-muted-foreground">{stylist.email || 'No email on file'}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="px-3 py-1.5 rounded-full text-xs font-black" style={{ backgroundColor: levelColor, color: '#fff' }}>
+                      <div className="px-3 py-1.5 bp-container-compact text-xs font-bold bg-secondary text-secondary-foreground">
                         {levels.find(l => l.id === stylist.levelId)?.name || 'Unknown'}
                       </div>
                       <button
                         data-ui="button"
                         onClick={() => setEditingStylist(stylist)}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="p-2 transition-colors hover:opacity-70 text-foreground"
                       >
-                        <ChevronRightIcon className="w-4 h-4 text-gray-500" />
+                        <ChevronRightIcon className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
-                  {stylist.permissionOverrides && Object.keys(stylist.permissionOverrides).length > 0 && (
-                    <p className="text-[9px] text-gray-400 font-bold">
-                      {Object.keys(stylist.permissionOverrides).length} custom permission(s)
-                    </p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      {stylist.permissionOverrides && Object.keys(stylist.permissionOverrides).length > 0 && (
+                        <p className="bp-caption">
+                          {Object.keys(stylist.permissionOverrides).length} custom permission(s)
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      data-ui="button"
+                      onClick={() => handleGeneratePin(stylist)}
+                      disabled={pinLoading && pinLoadingStylistId === stylist.id}
+                      className="px-4 py-1.5 text-xs uppercase tracking-widest bp-btn-primary disabled:opacity-50"
+                    >
+                      {pinLoading && pinLoadingStylistId === stylist.id ? 'Generating...' : pinMap[stylist.id] ? 'New PIN' : 'Generate PIN'}
+                    </button>
+                  </div>
+                  {pinError && pinLoadingStylistId === stylist.id && (
+                    <p className="text-xs text-red-600 font-medium mt-2">{pinError}</p>
+                  )}
+                  {pinMap[stylist.id] && (
+                    <div className="mt-3 p-4 bg-muted bp-container-compact border border-border text-center">
+                      <p className="bp-caption mb-3">Share this PIN with {stylist.name.split(' ')[0]}:</p>
+                      <p className="text-4xl font-bold tracking-[0.3em] text-foreground mb-3">{pinMap[stylist.id]}</p>
+                      <p className="bp-caption mb-2">Then have them go to:</p>
+                      <div className="flex items-center justify-center gap-2">
+                        <code className="text-xs px-3 py-2 bg-card border border-border bp-container-compact text-accent font-bold">
+                          {window.location.origin}/join
+                        </code>
+                        <button
+                          data-ui="button"
+                          onClick={() => navigator.clipboard.writeText(`${window.location.origin}/join`)}
+                          className="px-3 py-2 text-xs uppercase tracking-widest bp-btn-primary whitespace-nowrap"
+                        >
+                          Copy
+                        </button>
+                      </div>
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`${window.location.origin}/join`)}`}
+                        alt="QR Code"
+                        className="mx-auto mt-4 w-28 h-28"
+                      />
+                      <p className="bp-caption mt-2 text-muted-foreground">PIN expires in 24 hours</p>
+                    </div>
                   )}
                 </>
               )}
@@ -290,41 +300,41 @@ export default function TeamAccessSettings({ onBack }: TeamAccessSettingsProps) 
   const renderLevels = () => (
     <div className="space-y-4 pb-8">
       {levels.length === 0 ? (
-        <div className="p-4 text-center text-gray-500 text-sm font-bold bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
-          No access levels yet. Create one to set up team permissions.
+        <div className="p-4 text-center text-sm font-medium bp-container-compact border-2 border-dashed text-foreground bg-muted border">
+          No levels yet. Click "Add level" to create one.
         </div>
       ) : (
         levels.map((level) => (
-          <div key={level.id} className="rounded-2xl border-2 border-gray-100 p-4 bg-white space-y-4">
+          <div key={level.id} className="bp-container-tall border-4 border bp-card-padding-md bg-card space-y-6">
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label className="block text-[9px] font-black uppercase tracking-widest text-gray-500 mb-2">Level name</label>
+                <label className="block bp-overline mb-2">Level name</label>
                 <input
                   data-ui="field"
                   type="text"
                   value={level.name}
                   onChange={(e) => handleLevelUpdate(level.id, { name: e.target.value })}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl font-bold text-sm focus:outline-none focus:border-gray-950"
+                  className="w-full px-4 py-3 border-2 border font-medium text-sm text-foreground focus:outline-none focus:border-sky"
                 />
               </div>
               <div>
-                <label className="block text-[9px] font-black uppercase tracking-widest text-gray-500 mb-2">Color</label>
+                <label className="block bp-overline mb-2">Color</label>
                 <input
                   data-ui="field"
                   type="color"
                   value={level.color}
                   onChange={(e) => handleLevelUpdate(level.id, { color: e.target.value })}
-                  className="w-full h-12 rounded-xl cursor-pointer"
+                  className="w-full h-12 cursor-pointer"
                 />
               </div>
             </div>
 
-            <div className="space-y-3">
-              <p className="text-[9px] font-black uppercase tracking-widest text-gray-500">Default permissions</p>
-              <div className="space-y-2">
+            <div className="space-y-4">
+              <p className="bp-overline text-center">Default permissions</p>
+              <div className="space-y-3">
                 {levelPermissionKeys.map((permKey) => (
-                  <div key={permKey} className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-gray-700 capitalize">
+                  <div key={permKey} className="flex items-center justify-between bp-card-padding-sm bp-container-compact bg-muted border-2 border">
+                    <label className="text-xs font-medium capitalize text-muted-foreground flex-1">
                       {permKey.replace(/([A-Z])/g, ' $1').trim()}
                     </label>
                     <Toggle
@@ -342,22 +352,22 @@ export default function TeamAccessSettings({ onBack }: TeamAccessSettingsProps) 
   );
 
   return (
-    <div className="p-6 bg-gradient-to-b from-gray-50 to-white min-h-screen">
-      <button data-ui="button" onClick={onBack} className="mb-6 flex items-center text-xs font-black uppercase text-gray-500 hover:text-gray-900 transition-colors">
+    <div className="bp-page">
+      <button data-ui="button" onClick={onBack} className="mb-6 flex items-center text-sm font-semibold hover:opacity-80 transition-colors bp-back">
         <ChevronLeftIcon className="w-4 h-4 mr-1" />
         Back
       </button>
 
-      <h2 className="text-4xl font-black mb-8 text-brand-accent">Team Access</h2>
+      <h2 className="bp-page-subtitle mb-8">Team Access</h2>
 
       <div className="space-y-8">
         <div>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">Access Levels</p>
-              <p className="text-sm font-black text-gray-900">Define permission tiers for team members.</p>
+              <p className="bp-overline">Access Levels</p>
+              <p className="bp-body text-foreground">Define permission tiers for team members.</p>
             </div>
-            <button data-ui="button" onClick={handleAddLevel} className="px-4 py-2 bg-gray-950 text-white font-black rounded-2xl text-xs uppercase tracking-widest">
+            <button data-ui="button" onClick={handleAddLevel} className="px-4 py-2 text-xs uppercase tracking-widest bp-btn-primary">
               Add level
             </button>
           </div>
@@ -367,69 +377,18 @@ export default function TeamAccessSettings({ onBack }: TeamAccessSettingsProps) 
         <div>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">Team Members</p>
-              <p className="text-sm font-black text-gray-900">Invite and manage your team.</p>
+              <p className="bp-overline">Team Members</p>
+              <p className="bp-body text-foreground">Synced from Square. Generate a PIN to give them app access.</p>
             </div>
-            <button data-ui="button" onClick={() => setShowInviteForm(!showInviteForm)} className="px-4 py-2 bg-gray-950 text-white font-black rounded-2xl text-xs uppercase tracking-widest">
-              {showInviteForm ? 'Cancel' : 'Invite'}
-            </button>
           </div>
-
-          {showInviteForm && (
-            <form onSubmit={handleInviteStylist} className="mb-4 p-4 bg-white border-2 border-gray-100 rounded-2xl space-y-4">
-              <div>
-                <label className="block text-[9px] font-black uppercase tracking-widest text-gray-500 mb-2">Name</label>
-                <input
-                  data-ui="field"
-                  type="text"
-                  value={inviteName}
-                  onChange={(e) => setInviteName(e.target.value)}
-                  placeholder="Full name"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl font-bold text-sm focus:outline-none focus:border-gray-950"
-                />
-              </div>
-              <div>
-                <label className="block text-[9px] font-black uppercase tracking-widest text-gray-500 mb-2">Email</label>
-                <input
-                  data-ui="field"
-                  type="email"
-                  value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
-                  placeholder="email@example.com"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl font-bold text-sm focus:outline-none focus:border-gray-950"
-                />
-              </div>
-              <div>
-                <label className="block text-[9px] font-black uppercase tracking-widest text-gray-500 mb-2">Access Level</label>
-                <select
-                  data-ui="field"
-                  value={inviteLevelId}
-                  onChange={(e) => setInviteLevelId(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl font-bold text-sm focus:outline-none focus:border-gray-950"
-                >
-                  {levels.map((level) => (
-                    <option key={level.id} value={level.id}>
-                      {level.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {inviteError && <p className="text-xs text-red-600 font-bold">{inviteError}</p>}
-              {inviteStatus && <p className="text-xs text-green-600 font-bold">{inviteStatus}</p>}
-
-              <button data-ui="button" type="submit" disabled={inviteLoading} className="w-full px-4 py-3 bg-gray-950 text-white font-black rounded-2xl text-xs uppercase tracking-widest disabled:opacity-50">
-                {inviteLoading ? 'Sending...' : 'Send invite'}
-              </button>
-            </form>
-          )}
 
           {renderStylists()}
         </div>
 
-        <button data-ui="button" onClick={saveAll} className="w-full py-4 bg-gray-950 text-white font-black rounded-2xl">
+        <button data-ui="button" onClick={() => saveAll().then(showToast)} className="w-full py-4 bp-btn-primary">
           SAVE ALL SETTINGS
         </button>
+        <SaveToast visible={toastVisible} onDone={hideToast} />
       </div>
     </div>
   );
