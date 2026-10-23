@@ -5,8 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "node combined-dev-server.js",
-    "build": "vite build",
-    "preview": "vite preview"
+    "build": "pnpm check:target && vite build",
+    "preview": "vite preview",
+    "check:colors": "node scripts/check-colors.mjs",
+    "test:a11y": "pnpm check:target && pnpm check:colors && vite build --config tests/a11y/vite.config.ts && playwright test",
+    "test:a11y:report": "playwright show-report",
+    "check:target": "node scripts/check-target.mjs"
   },
   "dependencies": {
     "@builder.io/react": "^9.1.0",
@@ -19,7 +23,10 @@
     "recharts": "^3.5.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.10.2",
+    "@playwright/test": "1.58.2",
     "@tailwindcss/postcss": "^4.1.18",
+    "@types/node": "20.19.9",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
@@ -28,5 +35,9 @@
     "tailwindcss": "^4.1.18",
     "typescript": "^5.4.5",
     "vite": "^5.3.5"
+  },
+  "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": "22.x"
   }
 }

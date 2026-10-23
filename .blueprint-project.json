@@ -1,0 +1,9 @@
+{
+  "repository": "mrfranco91/Blueprint-Admin",
+  "vercelProject": "blueprint-admin",
+  "vercelTeam": "melissas-projects-3642f0e1",
+  "domain": "blueprint-admin-two.vercel.app",
+  "squareRedirectUri": "https://blueprint-admin-two.vercel.app/square/callback",
+  "productionBranch": null,
+  "productionBranchNote": "Connected repository verified from Vercel settings; production branch not yet read from Vercel."
+}

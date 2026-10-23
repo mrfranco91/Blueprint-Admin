@@ -12,7 +12,7 @@ import { PlanProvider } from './contexts/PlanContext';
 
 import { useSettings } from './contexts/SettingsContext';
 
-import './styles/accessibility.css';
+// Accessibility defaults and theme colors are owned by index.css.
 
 /* ----------------------------- */
 /* App Content (Auth-aware UI)   */

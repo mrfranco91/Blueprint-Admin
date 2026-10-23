@@ -1,0 +1,9 @@
+.git
+node_modules
+dist
+.env
+.env.*
+.a11y-dist
+playwright-report
+test-results
+AGENTS.md

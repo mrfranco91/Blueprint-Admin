@@ -12,15 +12,9 @@
       // This runs before React loads to ensure settings are correct instantly.
       (function() {
         try {
-          const primary = localStorage.getItem('admin_brand_primary');
-          const secondary = localStorage.getItem('admin_brand_secondary');
-          const accent = localStorage.getItem('admin_brand_accent');
           const font = localStorage.getItem('admin_brand_font');
           const textSize = localStorage.getItem('admin_text_size');
 
-          if (primary) document.documentElement.style.setProperty('--color-brand-primary', primary);
-          if (secondary) document.documentElement.style.setProperty('--color-brand-secondary', secondary);
-          if (accent) document.documentElement.style.setProperty('--color-brand-accent', accent);
 
           const applyBodyPreferences = () => {
             // This function is guaranteed to run only after document.body is available.

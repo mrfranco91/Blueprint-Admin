@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
+import { ThemeProvider } from './contexts/ThemeContext';
 import SquareCallback from './components/SquareCallback';
 import { isSquareCallbackRoute } from './utils/isSquareCallbackRoute';
 import { BrowserRouter } from 'react-router-dom';
@@ -14,8 +15,8 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
+    <ThemeProvider><BrowserRouter>
       {isSquareCallbackRoute() ? <SquareCallback /> : <App />}
-    </BrowserRouter>
+    </BrowserRouter></ThemeProvider>
   </React.StrictMode>
 );

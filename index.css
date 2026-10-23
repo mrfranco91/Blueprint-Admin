@@ -1,382 +1,763 @@
+@import url("https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap');
+@import "./styles/theme.css";
 
-/* =========================================================
-   DESIGN TOKENS — SOURCE OF TRUTH (accessible)
-   Palette base: sky-reflection
-   Font: Quicksand
-========================================================= */
+@custom-variant dark (&:is(.dark *));
 
-:root {
-  /* Typography */
-  --font-sans: "Quicksand", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-  --fw-regular: 400;
-  --fw-medium: 500;
-  --fw-semibold: 600;
-  --fw-bold: 700;
+@layer base {
+  * {
+    @apply border-border;
+  }
 
-  /* LIGHT MODE COLORS */
-  --bg: #ecf4f8;              /* sky-reflection-50 */
-  --surface: #dae9f1;         /* sky-reflection-100 */
-  --surface-2: #b5d3e3;       /* sky-reflection-200 */
+  html {
+    color-scheme: light;
+  }
 
-  --text: #0e1d25;            /* sky-reflection-900 */
-  --text-muted: #295770;      /* sky-reflection-700 */
+  html.dark {
+    color-scheme: dark;
+  }
 
-  --border: #8fbdd6;          /* sky-reflection-300 */
-  --border-strong: #6aa7c8;   /* sky-reflection-400 */
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    background-image:
+      linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(to right, var(--grid-line-strong) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-line-strong) 1px, transparent 1px),
+      radial-gradient(circle at top center, color-mix(in oklab, var(--accent) 10%, transparent), transparent 42%);
+    background-size:
+      24px 24px,
+      24px 24px,
+      120px 120px,
+      120px 120px,
+      100% 100%;
+    background-position:
+      0 0,
+      0 0,
+      0 0,
+      0 0,
+      center top;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-  --brand: #009dff;           /* deep-space-blue-500 */
-  --brand-hover: #007ecc;     /* deep-space-blue-600 */
+  h1 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.03em;
+    font-weight: 700;
+    font-size: 2.25rem;
+    line-height: 1.1;
+  }
 
-  /* Near-invert interaction */
-  --interactive-bg: #0e1d25;
-  --interactive-text: #ecf4f8;
-  --interactive-border: #6aa7c8;
+  h2 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.025em;
+    font-weight: 700;
+    font-size: 1.75rem;
+    line-height: 1.2;
+  }
 
-  /* Spacing */
-  --s-1: 4px;
-  --s-2: 8px;
-  --s-3: 12px;
-  --s-4: 16px;
-  --s-5: 20px;
-  --s-6: 24px;
+  h3 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.02em;
+    font-weight: 600;
+    font-size: 1.375rem;
+    line-height: 1.3;
+  }
 
-  /* Radius */
-  --r-sm: 10px;
-  --r-md: 14px;
-  --r-lg: 18px;
-  --r-pill: 9999px;
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.02em;
+    font-weight: 600;
+    font-size: 1.125rem;
+    line-height: 1.4;
+  }
 
-  /* Elevation */
-  --shadow-1: 0 2px 8px rgba(14, 29, 37, 0.12);
-  --shadow-2: 0 10px 30px rgba(14, 29, 37, 0.18);
+  p,
+  span,
+  label,
+  input,
+  textarea,
+  button,
+  select {
+    font-family: var(--font-sans);
+  }
 
-  /* Motion */
-  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --dur-fast: 120ms;
-  --dur-med: 180ms;
-  --press-y: 1px;
+  ::selection {
+    background: color-mix(in oklab, var(--primary) 28%, transparent);
+    color: var(--foreground);
+  }
 
-  /* ---------------------------------------------------------
-     Back-compat aliases (IMPORTANT)
-     Your existing Tailwind classes like bg-brand-primary rely
-     on these Tailwind v4 CSS variables.
-  --------------------------------------------------------- */
-  --color-brand-primary: var(--brand);
-  --color-brand-secondary: #295770;   /* sky-reflection-700 */
-  --color-brand-accent: #8fbdd6;      /* sky-reflection-300 (toggle vibe) */
-  --color-brand-accent-dark: #1c3a4a; /* sky-reflection-800 */
-  --color-brand-bg: var(--bg);
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+    box-shadow:
+      0 0 0 2px var(--ring),
+      0 0 0 5px color-mix(in oklab, var(--background) 80%, transparent);
+  }
 
-  /* Accessible text colors (keep names) */
-  --text-on-primary: #ecf4f8;
-  --text-on-secondary: #ecf4f8;
-  --text-on-accent: #0e1d25;
-  --text-on-light: var(--text);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0a141a;
-    --surface: #0e1d25;
-    --surface-2: #1c3a4a;
-
-    --text: #ecf4f8;
-    --text-muted: #8fbdd6;
-
-    --border: #295770;
-    --border-strong: #377495;
-
-    --brand: #33b1ff;
-    --brand-hover: #66c4ff;
-
-    --interactive-bg: #ecf4f8;
-    --interactive-text: #0a141a;
-    --interactive-border: #377495;
-
-    /* Keep Tailwind v4 variable names working in dark mode */
-    --color-brand-primary: var(--brand);
-    --color-brand-secondary: #377495;
-    --color-brand-accent: #6aa7c8;
-    --color-brand-accent-dark: #ecf4f8;
-    --color-brand-bg: var(--bg);
-
-    --text-on-primary: #0a141a;
-    --text-on-secondary: #0a141a;
-    --text-on-accent: #0a141a;
-    --text-on-light: #ecf4f8;
+  ::placeholder {
+    color: color-mix(in oklab, var(--muted-foreground) 80%, transparent);
   }
 }
 
-/* =========================================================
-   GLOBAL BASELINE
-========================================================= */
+@layer utilities {
+  /* Clears the fixed bottom nav in overflow-y-auto scroll containers */
+  .pb-nav {
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
 
-html, body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-sans);
-}
-
-/* =========================================================
-   OPTIONAL NEW “SYSTEM” CLASSES
-   (won’t break anything if unused yet)
-========================================================= */
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--s-2);
-  padding: var(--s-3) var(--s-5);
-  font-weight: var(--fw-semibold);
-  border-radius: var(--r-pill);
-  border: 2px solid var(--border-strong);
-  background: var(--surface-2);
-  color: var(--text);
-  cursor: pointer;
-
-  box-shadow: var(--shadow-1);
-  transition:
-    background var(--dur-med) var(--ease),
-    color var(--dur-med) var(--ease),
-    border-color var(--dur-med) var(--ease),
-    transform var(--dur-fast) var(--ease),
-    box-shadow var(--dur-med) var(--ease);
-}
-
-.btn--primary {
-  background: var(--brand);
-  border-color: var(--brand-hover);
-  color: var(--interactive-text);
-}
-
-.btn:hover {
-  background: var(--interactive-bg);
-  color: var(--interactive-text);
-  border-color: var(--interactive-border);
-}
-
-.btn:active {
-  transform: translateY(var(--press-y));
-  box-shadow: var(--shadow-1);
-}
-
-/* =========================================================
-   TOGGLE — pill track + BIG pill knob (matches your mock)
-   Supports:
-   - .toggle (recommended)
-   - your existing Tailwind pattern: button.w-12.h-6.rounded-full.relative > div.absolute.top-1.w-4.h-4
-========================================================= */
-
-/* Track */
-.toggle {
-  position: relative;
-  width: 56px !important;
-  height: 28px !important;
-  border-radius: var(--r-pill);
-  background: #8abad4;               /* Inactive: Light blue */
-  border: 2px solid var(--border-strong);
-  box-shadow: var(--shadow-1);
-  cursor: pointer;
-
-  transition:
-    background var(--dur-med) var(--ease),
-    border-color var(--dur-med) var(--ease),
-    transform var(--dur-fast) var(--ease),
-    box-shadow var(--dur-med) var(--ease);
-}
-
-.toggle:active {
-  transform: translateY(var(--press-y));
-}
-
-/* BIG pill knob — for .toggle via pseudo element */
-.toggle::after {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 32px;
-  height: 20px;
-  border-radius: var(--r-pill);
-  background: #ffffff;       /* White Knob */
-  border: 2px solid rgba(236, 244, 248, 0.2); /* Light transparent border */
-  box-shadow: 0 4px 12px rgba(14, 29, 37, 0.18);
-  transform: translateX(0);
-  transition: transform var(--dur-med) var(--ease),
-              background var(--dur-med) var(--ease),
-              border-color var(--dur-med) var(--ease);
-}
-
-
-/* ON state track - Brand color */
-.toggle[aria-checked="true"],
-.toggle[data-state="on"] {
-  background: #8abad4;
-  border-color: #377495;
-}
-
-/* ON state knob movement:
-   Width 56px.
-   Border 2px on each side.
-   Knob width 32px.
-   Left 2px.
-   Available inner space: 56 - 4 = 52px.
-   Target Right Gap: 2px.
-   Travel = 52 - 32 - 2 (left) - 2 (right gap? no, math is: width - knob_width - 2*left_offset)
-   Wait, if Left is 2px.
-   56 (total) - 2 (border L) - 2 (border R) = 52 inner.
-   Knob is 32.
-   Start: 2px from left border (so 4px from total left edge?). No, top/left are relative to padding box?
-   Usually border-box.
-   If absolute inside relative.
-   Let's assume travel needs to put it 2px from right.
-   56 - 2(border) - 2(gap) - 32(knob) - 2(border) - 2(gap) ?
-   Travel = (Width - Border*2) - KnobWidth - Gap*2 ?
-   (56 - 4) - 32 - 4 = 16px?
-   Let's try 18px.
-*/
-.toggle[aria-checked="true"]::after,
-.toggle[data-state="on"]::after {
-  transform: translateX(18px);
-}
-
-
-/* Dark-mode knob swap */
-@media (prefers-color-scheme: dark) {
+  /* Toggle switch */
+  .toggle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    width: 48px;
+    height: 28px;
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    transition: background-color 0.2s, border-color 0.2s;
+    cursor: pointer;
+    flex-shrink: 0;
+    padding: 0;
+  }
+  .toggle[data-state="on"] {
+    background-color: var(--primary);
+  }
+  .toggle[data-state="off"] {
+    background-color: var(--muted);
+    border-color: var(--border);
+  }
   .toggle::after {
-    border-color: rgba(236, 244, 248, 0.20) !important;
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 9999px;
+    background-color: var(--tint);
+    transition: transform 0.2s;
+    left: 2px;
+  }
+  .toggle[data-state="on"]::after {
+    transform: translateX(20px);
+  }
+  .toggle[data-state="off"]::after {
+    transform: translateX(0);
   }
 }
 
-/* =========================================================
-   BELOW HERE: YOUR ORIGINAL PROJECT CSS (kept)
-========================================================= */
+@layer components {
+  .bp-status {
+    background: var(--muted);
+    color: var(--muted-foreground);
+  }
 
-/* Tailwind Overrides for Dynamic Text Size */
-/* Small Size Setting */
-.text-size-s .text-xs { font-size: 0.6875rem; } /* ~11px */
-.text-size-s .text-sm { font-size: 0.75rem; } /* was text-xs */
-.text-size-s .text-base { font-size: 0.875rem; } /* was text-sm */
-.text-size-s .text-lg { font-size: 1rem; } /* was text-base */
-.text-size-s .text-xl { font-size: 1.125rem; } /* was text-lg */
-.text-size-s .text-2xl { font-size: 1.25rem; } /* was text-xl */
-.text-size-s .text-3xl { font-size: 1.5rem; } /* was text-2xl */
-.text-size-s .text-4xl { font-size: 1.875rem; } /* was text-3xl */
-.text-size-s .text-5xl { font-size: 2.25rem; } /* was text-4xl */
+  .bp-status[data-status='active'] {
+    background: var(--status-active);
+    color: var(--status-active-foreground);
+  }
 
-/* Medium Size is Tailwind's default, no overrides needed. */
+  .bp-status[data-status='draft'] {
+    background: var(--status-draft);
+    color: var(--status-draft-foreground);
+  }
 
-/* Large Size Setting */
-.text-size-l .text-xs { font-size: 0.875rem; } /* was text-sm */
-.text-size-l .text-sm { font-size: 1rem; } /* was text-base */
-.text-size-l .text-base { font-size: 1.125rem; } /* was text-lg */
-.text-size-l .text-lg { font-size: 1.25rem; } /* was text-xl */
-.text-size-l .text-xl { font-size: 1.5rem; } /* was text-2xl */
-.text-size-l .text-2xl { font-size: 1.875rem; } /* was text-3xl */
-.text-size-l .text-3xl { font-size: 2.25rem; } /* was text-4xl */
-.text-size-l .text-4xl { font-size: 3rem; } /* was text-5xl */
-.text-size-l .text-5xl { font-size: 3.75rem; } /* was text-6xl */
+  /* A surface owns its text color, including explicit text-foreground children.
+     Dark mode intentionally keeps cards light: page foreground is unsafe there. */
+  .bg-card {
+    --foreground: var(--card-foreground);
+    color: var(--card-foreground);
+  }
 
-/* LoginScreen responsive logo */
-.login-logo {
-  width: 100%;
-  height: auto;
-  max-width: 100%;
-}
+  .bg-popover {
+    --foreground: var(--popover-foreground);
+    color: var(--popover-foreground);
+  }
 
-@media (max-width: 991px) {
-  .login-logo {
+  .bg-muted {
+    --foreground: var(--card-foreground);
+    color: var(--card-foreground);
+  }
+
+  /* page / layout helpers */
+  .bp-page {
+    @apply min-h-screen bg-background text-foreground px-5 py-5 sm:px-8 sm:py-6;
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
+    background-image:
+      linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(to right, var(--grid-line-strong) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-line-strong) 1px, transparent 1px);
+    background-size: 24px 24px, 24px 24px, 120px 120px, 120px 120px;
+  }
+
+  .bp-grid-bg {
+    background-image:
+      linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(to right, var(--grid-line-strong) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-line-strong) 1px, transparent 1px);
+    background-size: 24px 24px, 24px 24px, 120px 120px, 120px 120px;
+  }
+
+  /* surfaces */
+  .bp-shell {
+    @apply relative overflow-hidden rounded-[2rem] border-4;
+    border-color: var(--panel-border);
+    background: var(--card);
+    color: var(--card-foreground);
+    box-shadow: var(--shell-shadow);
+  }
+
+  .bp-shell::before {
+    content: "";
+    position: absolute;
+    inset: 0.75rem;
+    border-radius: 1.35rem;
+    border: 1px solid color-mix(in oklab, var(--panel-inner-border) 90%, transparent);
+    pointer-events: none;
+  }
+
+  .bp-panel {
+    @apply relative rounded-3xl border;
+    background: var(--panel);
+    color: var(--panel-foreground);
+    border-color: var(--panel-border);
+    box-shadow: var(--surface-shadow);
+  }
+
+  .bp-panel::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    border-radius: inherit;
+    border: 1px solid color-mix(in oklab, var(--panel-inner-border) 60%, transparent);
+    pointer-events: none;
+  }
+
+  .bp-card {
+    @apply relative rounded-[1.25rem] border;
+    background: var(--panel);
+    color: var(--panel-foreground);
+    border-color: var(--panel-border);
+    box-shadow: var(--surface-shadow);
+  }
+
+  .bp-card::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    border-radius: inherit;
+    border: 1px solid color-mix(in oklab, var(--panel-inner-border) 55%, transparent);
+    pointer-events: none;
+  }
+
+  /* headings / labels */
+  .bp-title {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+
+  .bp-subtitle {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .bp-label {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  /* fields */
+  .bp-field {
+    @apply h-12 w-full rounded-full border bg-background px-4 text-sm transition-colors;
+    border-color: color-mix(in oklab, var(--panel-border) 45%, var(--border));
+    box-shadow: inset 0 1px 0 rgb(var(--shadow-highlight) / 0.08);
+  }
+
+  .bp-field:focus-visible {
+    border-color: var(--ring);
+  }
+
+  .bp-field-soft {
+    @apply h-12 w-full rounded-[1rem] border bg-background px-4 text-sm transition-colors;
+    border-color: color-mix(in oklab, var(--panel-border) 45%, var(--border));
+    box-shadow: inset 0 1px 0 rgb(var(--shadow-highlight) / 0.08);
+  }
+
+  .bp-field-soft:focus-visible {
+    border-color: var(--ring);
+  }
+
+  /* buttons */
+  .bp-button {
+    @apply inline-flex items-center justify-center whitespace-nowrap rounded-full border px-5 py-2 text-sm font-bold uppercase tracking-[0.08em] transition-all disabled:pointer-events-none disabled:opacity-50;
+    min-height: 3rem;
+  }
+
+  .bp-button-primary {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--primary) 92%, var(--tint)),
+      var(--primary)
+    );
+    color: var(--primary-foreground);
+    border-color: color-mix(in oklab, var(--primary) 70%, var(--shade));
+    box-shadow:
+      inset 0 1px 0 rgb(var(--shadow-highlight) / 0.18),
+      0 6px 18px rgb(var(--shadow-ink) / 0.16);
+  }
+
+  .bp-button-primary:hover {
+    filter: brightness(1.03);
+    transform: translateY(-1px);
+  }
+
+  .bp-button-primary:active {
+    transform: translateY(0);
+    filter: brightness(0.98);
+  }
+
+  .bp-button-secondary {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--secondary) 88%, var(--tint)),
+      var(--secondary)
+    );
+    color: var(--secondary-foreground);
+    border-color: color-mix(in oklab, var(--secondary) 68%, var(--shade));
+    box-shadow:
+      inset 0 1px 0 rgb(var(--shadow-highlight) / 0.16),
+      0 6px 18px rgb(var(--shadow-ink) / 0.12);
+  }
+
+  .bp-button-secondary:hover {
+    filter: brightness(1.03);
+    transform: translateY(-1px);
+  }
+
+  .bp-button-secondary:active {
+    transform: translateY(0);
+    filter: brightness(0.98);
+  }
+
+  .bp-button-ghost {
+    background: color-mix(in oklab, var(--panel) 72%, transparent);
+    color: var(--foreground);
+    border-color: color-mix(in oklab, var(--panel-border) 34%, transparent);
+  }
+
+  .bp-button-ghost:hover {
+    background: color-mix(in oklab, var(--panel) 82%, transparent);
+  }
+
+  /* bottom nav style */
+  .bp-nav {
+    @apply rounded-full border px-3 py-2;
+    background: color-mix(in oklab, var(--panel) 88%, transparent);
+    border-color: color-mix(in oklab, var(--panel-border) 42%, transparent);
+    box-shadow: var(--surface-shadow);
+  }
+
+  .bp-nav-active {
+    @apply rounded-full border px-6 py-2;
+    background: color-mix(in oklab, var(--primary) 18%, var(--panel));
+    color: var(--foreground);
+    border-color: color-mix(in oklab, var(--primary) 55%, var(--panel-border));
+    box-shadow:
+      inset 0 1px 0 rgb(var(--shadow-highlight) / 0.15),
+      0 4px 16px rgb(var(--shadow-ink) / 0.12);
+  }
+
+  .bp-separator {
+    background: color-mix(in oklab, var(--panel-border) 20%, transparent);
+  }
+
+  /* ── Shape system ── */
+  .bp-container-compact {
+    border-radius: 9999px;
+  }
+
+  .bp-container-tall {
+    border-radius: 1.125rem;
+  }
+
+  .bp-container-list {
+    border-radius: 1.125rem;
+  }
+
+  /* ── Typography tokens ── */
+  .bp-page-title {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    color: var(--primary-foreground);
+    display: block;
+    /* Break out of bp-page px-5 / py-5 padding to span full width */
+    width: calc(100% + 2.5rem);
+    margin: -1.25rem -1.25rem 1.25rem;
+    padding: 1.1rem 1.5rem 1rem;
+    background: var(--primary);
+    border: none;
+    border-radius: 0;
+    box-shadow: 0 2px 12px rgb(var(--shadow-ink) / 0.14);
+  }
+
+  @media (min-width: 640px) {
+    .bp-page-title {
+      width: calc(100% + 4rem);
+      margin: -1.5rem -2rem 1.25rem;
+      padding: 1.25rem 2.5rem 1.125rem;
+      font-size: 2.25rem;
+    }
+  }
+
+  /* Subtitle directly following title: pull into the same header band */
+  .bp-page-title:has(+ .bp-subtitle) {
+    margin-bottom: 0;
+    padding-bottom: 0.25rem;
+  }
+
+  .bp-page-title + .bp-subtitle {
+    display: block;
+    width: calc(100% + 2.5rem);
+    margin: 0 -1.25rem 1.5rem;
+    padding: 0.25rem 1.75rem 0.875rem;
+    background: var(--primary);
+    color: color-mix(in oklab, var(--primary-foreground) 72%, transparent);
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  @media (min-width: 640px) {
+    .bp-page-title:has(+ .bp-subtitle) {
+      margin-bottom: 0;
+    }
+    .bp-page-title + .bp-subtitle {
+      width: calc(100% + 4rem);
+      margin-inline: -2rem;
+      padding-left: 2.5rem;
+      padding-right: 2.5rem;
+    }
+  }
+
+  .bp-page-subtitle {
+    font-family: var(--font-heading);
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+    color: var(--foreground);
+  }
+
+  /* ── 3-tier text hierarchy (scales with root font-size from appearance settings) ─────────────
+     Tier 1 Large  : 1.25rem  — section titles, card headers
+     Tier 2 Medium : 1rem     — body text, card titles, body-sm
+     Tier 3 Small  : 0.75rem  — labels, captions, overlines, subtitles
+  ─────────────────────────────────────────────────────────────────────────────────────────── */
+
+  .bp-section-title {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: inherit;
+  }
+
+  .bp-card-title {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--foreground);
+  }
+
+  .bp-overline {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--secondary);
+  }
+
+  .bp-subtitle {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  .bp-body-sm {
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--muted-foreground);
+  }
+
+  .bp-caption {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--muted-foreground);
+  }
+
+  /* ── Card padding variants ── */
+  .bp-card-padding-sm {
+    padding: 0.75rem 1rem;
+  }
+
+  .bp-card-padding-md {
+    padding: 1.25rem 1.25rem;
+  }
+
+  .bp-card-padding-lg {
+    padding: 1.75rem 1.75rem;
+  }
+
+  /* ── Elevated card ── */
+  .elevated-card {
+    border-width: 2px;
+    border-style: solid;
+    border-color: var(--card-border);
+    box-shadow:
+      0 2px 10px rgb(var(--shadow-ink) / 0.08),
+      0 1px 3px rgb(var(--shadow-ink) / 0.05);
+    transition: box-shadow 0.15s ease, transform 0.1s ease;
+  }
+
+  .elevated-card:hover {
+    box-shadow:
+      0 6px 22px rgb(var(--shadow-ink) / 0.12),
+      0 2px 6px rgb(var(--shadow-ink) / 0.07);
+    transform: translateY(-1px);
+  }
+
+  /* ── Primary action button ── */
+  .bp-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    border-radius: 9999px;
+    border: 1px solid color-mix(in oklab, var(--primary) 70%, var(--shade));
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--primary) 92%, var(--tint)),
+      var(--primary)
+    );
+    color: var(--primary-foreground);
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    min-height: 3rem;
+    padding: 0.5rem 1.5rem;
+    box-shadow:
+      inset 0 1px 0 rgb(var(--shadow-highlight) / 0.18),
+      0 6px 18px rgb(var(--shadow-ink) / 0.16);
+    transition: filter 0.15s ease, transform 0.1s ease;
+    cursor: pointer;
+  }
+
+  .bp-btn-primary:hover {
+    filter: brightness(1.06);
+    transform: translateY(-1px);
+  }
+
+  .bp-btn-primary:active {
+    transform: translateY(0);
+    filter: brightness(0.97);
+  }
+
+  .bp-btn-primary:disabled {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  /* ── Bottom nav button text override (ensures contrast when primary bg is light in dark mode) ── */
+  .bp-bottomnav button {
+    color: var(--navigation-foreground);
+  }
+
+  .bp-bottomnav button[aria-current='page'] {
+    text-decoration: underline;
+    text-underline-offset: 0.3em;
+  }
+
+  /* ── Back navigation button ── */
+  .bp-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--primary);
+    background: color-mix(in oklab, var(--primary) 8%, transparent);
+    border: 1px solid color-mix(in oklab, var(--primary) 20%, transparent);
+    border-radius: 9999px;
+    padding: 0.375rem 0.875rem;
+    transition: background 0.15s ease;
+  }
+
+  .bp-back:hover {
+    background: color-mix(in oklab, var(--primary) 14%, transparent);
+  }
+
+  /* app shell wrapper — constrains h-full children above fixed nav, respects iOS safe area */
+  .bp-app-shell {
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* page content wrapper - universal margins */
+  .bp-content {
+    @apply px-5 py-5 sm:px-8 sm:py-6;
+  }
+
+  /* bottom nav bar */
+  .bp-bottomnav {
+    background: var(--navigation);
+    color: var(--navigation-foreground);
+    border-top: 1px solid var(--navigation-foreground);
+    box-shadow: 0 -4px 24px rgb(var(--shadow-ink) / 0.18);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* page header bar */
+  .bp-page-header {
+    @apply px-5 pt-5 pb-3 sm:px-8 sm:pt-6;
+  }
+
+  /* stat/metric values */
+  .bp-stat-value {
+    font-family: var(--font-heading);
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    color: inherit;
+  }
+
+  .bp-stat-label {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  /* ── Login screen ── */
+  .bp-login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+
+  .bp-login-card {
+    background: var(--card);
+    color: var(--card-foreground);
+    border: 3px solid var(--primary);
+    border-radius: 1.5rem;
     width: 100%;
+    max-width: 480px;
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--primary) 12%, transparent),
+      0 16px 48px rgb(var(--shadow-ink) / 0.12);
+    overflow: hidden;
+  }
+
+  .bp-login-logo-wrap {
+    padding: 2.5rem 2.5rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .bp-login-logo {
+    width: 100%;
+    max-width: 340px;
     height: auto;
+    object-fit: contain;
+  }
+
+  .bp-login-body {
+    padding: 0.5rem 2.5rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .bp-login-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0.25rem 0;
+  }
+
+  .bp-login-divider-line {
+    flex: 1;
+    height: 1px;
+    background: color-mix(in oklab, var(--border) 70%, transparent);
+  }
+
+  .bp-login-team {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .bp-login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .bp-login-pin-link {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--primary);
+    text-align: center;
+    padding: 0.5rem;
+    transition: opacity 0.15s ease;
+  }
+
+  .bp-login-pin-link:hover {
+    opacity: 0.75;
   }
 }
 
-/* Blueprint Button Styles (updated to tokens, same class name) */
-.blueprint-button {
-  border: 2px solid var(--border-strong);
-  color: var(--text);
-  background-color: #ffffff;
-  font-weight: var(--fw-bold);
-  padding: 12px;
-  border-radius: var(--r-md);
-  width: 100%;
-  text-align: center;
-  cursor: pointer;
-  transition: background var(--dur-med) var(--ease),
-              color var(--dur-med) var(--ease),
-              border-color var(--dur-med) var(--ease),
-              transform var(--dur-fast) var(--ease),
-              box-shadow var(--dur-med) var(--ease);
-  font-size: 14px;
-  box-shadow: var(--shadow-1);
-}
-
-.blueprint-button:hover:not(:disabled) {
-  background: var(--interactive-bg);
-  color: var(--interactive-text);
-  border-color: var(--interactive-border);
-  box-shadow: var(--shadow-2);
-  transform: translateY(-1px);
-}
-
-.blueprint-button:active:not(:disabled) {
-  transform: translateY(var(--press-y));
-}
-
-.blueprint-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Submit Button Styles */
-.sync-button {
-  transition: background-color var(--dur-med) var(--ease), color var(--dur-med) var(--ease);
-}
-
-.sync-button:hover:not(:disabled) {
-  background-color: rgba(0, 126, 204, 0.9); /* brand-hover-ish */
-}
-
-.sync-button:active:not(:disabled) {
-  background-color: rgba(0, 126, 204, 0.8);
-}
-
-/* Square OAuth Button Responsive Styles */
-.square-oauth-button {
-  border: 3px solid #0f4773 !important;
-  border-radius: 97px !important;
-  color: rgba(0, 0, 0, 1);
-  margin-bottom: 16px;
-  overflow: hidden;
-}
-
-@media (max-width: 991px) {
-  .square-oauth-button {
-    border-style: solid !important;
-    border-width: 3px !important;
-    font: 600 21px/24.5px Raleway, sans-serif;
-    font-size: 16px !important;
-    line-height: 14.5px;
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
-}
-
-/* Stylist Sign In Button Responsive Styles */
-.stylist-signin-button {
-  border: 3px solid #0f4773 !important;
-  border-radius: 97px !important;
-  color: rgba(0, 0, 0, 1);
-  overflow: hidden;
-}
-
-.stylist-email-input,
-.stylist-password-input {
-  border: 1px solid rgb(55, 65, 81) !important;
-  border-radius: 106px !important;
-  background-color: rgba(255, 255, 255, 1);
-  color: rgba(0, 0, 0, 1);
-  overflow: hidden;
 }
